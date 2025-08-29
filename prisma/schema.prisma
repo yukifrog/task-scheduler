@@ -1,0 +1,233 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ユーザー管理
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  image     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // リレーション
+  tasks     Task[]
+  routines  Routine[]
+  records   TaskRecord[]
+  settings  UserSetting?
+
+  @@map("users")
+}
+
+// ユーザー設定
+model UserSetting {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // 時間設定
+  defaultWorkHours    Int     @default(8)
+  breakDuration      Int     @default(15)
+  timeZone           String  @default("Asia/Tokyo")
+  
+  // 通知設定
+  enableNotifications Boolean @default(true)
+  discordWebhook      String?
+  telegramChatId      String?
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("user_settings")
+}
+
+// ルーティンタスク定義
+model Routine {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  title       String
+  description String?
+  category    String?
+  
+  // 見積もり時間（分）
+  estimatedMinutes Int
+  
+  // 繰り返し設定
+  repeatType   RepeatType @default(DAILY)
+  repeatValue  Int        @default(1) // 毎日=1, 毎週=1, 隔週=2, etc
+  weekdays     Int[]      @default([]) // [0,1,2,3,4,5,6] 日〜土
+  monthlyDay   Int?       // 月次の場合の日付
+  
+  // 優先度・重要度
+  priority     Priority   @default(MEDIUM)
+  importance   Importance @default(MEDIUM)
+  
+  isActive     Boolean    @default(true)
+  tags         String[]   @default([])
+  
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  
+  // リレーション
+  tasks        Task[]
+
+  @@map("routines")
+}
+
+// 個別タスク（ルーティンから生成 or 単発）
+model Task {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  routineId   String?
+  routine     Routine? @relation(fields: [routineId], references: [id], onDelete: SetNull)
+  
+  title       String
+  description String?
+  category    String?
+  
+  // 計画
+  plannedDate      DateTime
+  plannedStartTime DateTime?
+  estimatedMinutes Int
+  
+  // 優先度・重要度（ルーティンから継承 or 個別設定）
+  priority     Priority   @default(MEDIUM)
+  importance   Importance @default(MEDIUM)
+  
+  // ステータス
+  status       TaskStatus @default(PENDING)
+  
+  // 実績情報
+  actualStartTime DateTime?
+  actualEndTime   DateTime?
+  actualMinutes   Int?
+  interruptions   Int        @default(0)
+  
+  tags         String[]   @default([])
+  notes        String?    // 振り返りメモ
+  
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  
+  // リレーション
+  records      TaskRecord[]
+
+  @@map("tasks")
+}
+
+// タスク実行記録（中断・再開を記録）
+model TaskRecord {
+  id       String   @id @default(cuid())
+  userId   String
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  taskId   String
+  task     Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  
+  // 時間記録
+  startTime     DateTime
+  endTime       DateTime?
+  
+  // 記録タイプ
+  type          RecordType @default(WORK)
+  
+  // 中断理由・メモ
+  reason        String?
+  notes         String?
+  
+  // 外的要因
+  weather       String?
+  mood          Int?       @default(3) // 1-5の気分
+  energyLevel   Int?       @default(3) // 1-5のエネルギーレベル
+  
+  createdAt     DateTime   @default(now())
+
+  @@map("task_records")
+}
+
+// 外的要因記録（天気・体調等）
+model EnvironmentalFactor {
+  id          String   @id @default(cuid())
+  date        DateTime @unique
+  
+  weather     String?
+  temperature Float?
+  humidity    Float?
+  
+  // システム記録用
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("environmental_factors")
+}
+
+// 統計・分析結果キャッシュ
+model AnalyticsCache {
+  id        String   @id @default(cuid())
+  userId    String
+  
+  cacheKey  String
+  data      Json
+  validUntil DateTime
+  
+  createdAt DateTime @default(now())
+
+  @@unique([userId, cacheKey])
+  @@map("analytics_cache")
+}
+
+// Enums
+enum RepeatType {
+  DAILY
+  WEEKLY
+  MONTHLY
+  YEARLY
+  CUSTOM
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum Importance {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum TaskStatus {
+  PENDING
+  IN_PROGRESS
+  PAUSED
+  COMPLETED
+  CANCELLED
+  POSTPONED
+}
+
+enum RecordType {
+  WORK       // 実作業
+  BREAK      // 休憩
+  INTERRUPTION // 中断
+  MEETING    // 会議・打ち合わせ
+  RESEARCH   // 調査・研究
+}
