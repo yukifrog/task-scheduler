@@ -7,7 +7,7 @@ interface TaskData {
   description?: string
   category?: string
   plannedDate: string
-  plannedStartTime?: string
+  plannedStartTime?: string | null
   estimatedMinutes: number
   priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'
   importance: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL'
@@ -41,9 +41,12 @@ export function TaskForm({ onSubmit, onCancel, selectedDate }: TaskFormProps) {
     try {
       const taskData = {
         ...formData,
+        plannedDate: selectedDate,
         plannedStartTime: formData.plannedStartTime 
           ? `${selectedDate}T${formData.plannedStartTime}:00`
           : null,
+        priority: formData.priority as 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT',
+        importance: formData.importance as 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL',
         tags: formData.tags
           .split(',')
           .map(tag => tag.trim())
