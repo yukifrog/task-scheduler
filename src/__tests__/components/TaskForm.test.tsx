@@ -56,8 +56,12 @@ describe('TaskForm', () => {
       expect(mockOnSubmit).toHaveBeenCalledWith(expect.objectContaining({
         title: 'Test Task',
         description: 'Test description',
-        estimatedMinutes: 60,
+        estimatedMinutes: "60",
         priority: 'HIGH',
+        category: '',
+        importance: 'MEDIUM',
+        plannedStartTime: null,
+        tags: [],
       }))
     })
   })

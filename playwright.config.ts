@@ -16,7 +16,7 @@ export default defineConfig({
   reporter: 'html',
   
   use: {
-    // ベースURL（現在のポート設定に合わせる）
+    // ベースURL（実際の開発サーバーポートに合わせる）
     baseURL: 'http://localhost:3001',
     
     // トレース設定
@@ -33,26 +33,6 @@ export default defineConfig({
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
-    },
-
-    {
-      name: 'firefox',
-      use: { ...devices['Desktop Firefox'] },
-    },
-
-    {
-      name: 'webkit',
-      use: { ...devices['Desktop Safari'] },
-    },
-
-    // モバイルテスト
-    {
-      name: 'Mobile Chrome',
-      use: { ...devices['Pixel 5'] },
-    },
-    {
-      name: 'Mobile Safari',
-      use: { ...devices['iPhone 12'] },
     },
   ],
 

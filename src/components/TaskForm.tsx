@@ -2,8 +2,20 @@
 
 import { useState } from 'react'
 
+interface TaskData {
+  title: string
+  description?: string
+  category?: string
+  plannedDate: string
+  plannedStartTime?: string
+  estimatedMinutes: number
+  priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'
+  importance: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL'
+  tags: string[]
+}
+
 interface TaskFormProps {
-  onSubmit: (taskData: any) => void
+  onSubmit: (taskData: TaskData) => void
   onCancel: () => void
   selectedDate: string
 }

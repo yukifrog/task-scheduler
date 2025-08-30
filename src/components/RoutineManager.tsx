@@ -234,6 +234,24 @@ export default function RoutineManager() {
         </div>
       )}
 
+      {/* 統計セクション */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div className="bg-white p-4 rounded-lg shadow-md">
+          <h3 className="text-lg font-semibold text-gray-900">アクティブなルーティン</h3>
+          <p className="text-2xl font-bold text-blue-600 mt-2">
+            {routines.filter(r => r.isActive).length}
+          </p>
+        </div>
+        <div className="bg-white p-4 rounded-lg shadow-md">
+          <h3 className="text-lg font-semibold text-gray-900">今日の生成済み</h3>
+          <p className="text-2xl font-bold text-green-600 mt-2">0</p>
+        </div>
+        <div className="bg-white p-4 rounded-lg shadow-md">
+          <h3 className="text-lg font-semibold text-gray-900">完了率</h3>
+          <p className="text-2xl font-bold text-purple-600 mt-2">0%</p>
+        </div>
+      </div>
+
       <div className="space-y-4">
         {routines.length === 0 ? (
           <div className="text-center text-gray-500 py-8">

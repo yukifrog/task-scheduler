@@ -1,12 +1,11 @@
 'use client'
 
 import { useSession, signIn } from 'next-auth/react'
-import { useState, useEffect } from 'react'
 import { TaskDashboard } from '@/components/TaskDashboard'
 import { LoadingSpinner } from '@/components/LoadingSpinner'
 
 export default function Home() {
-  const { data: session, status } = useSession()
+  const { status } = useSession()
 
   if (status === 'loading') {
     return <LoadingSpinner />
@@ -29,7 +28,7 @@ export default function Home() {
             </p>
           </div>
           <button
-            onClick={() => signIn()}
+            onClick={() => signIn(undefined, { callbackUrl: '/' })}
             className="w-full inline-flex justify-center py-3 px-6 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
           >
             サインインして開始

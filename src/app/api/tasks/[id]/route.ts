@@ -4,6 +4,24 @@ import { authOptions } from '@/auth'
 import { prisma } from '@/lib/prisma'
 import { TaskStatus, Priority, Importance } from '@prisma/client'
 
+interface TaskUpdateData {
+  title?: string
+  description?: string | null
+  category?: string | null
+  plannedDate?: Date
+  plannedStartTime?: Date | null
+  estimatedMinutes?: number
+  priority?: Priority
+  importance?: Importance
+  status?: TaskStatus
+  tags?: string[]
+  notes?: string | null
+  actualStartTime?: Date | null
+  actualEndTime?: Date | null
+  actualMinutes?: number | null
+  interruptions?: number
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
@@ -97,7 +115,7 @@ export async function PUT(
       return NextResponse.json({ error: 'Task not found' }, { status: 404 })
     }
 
-    const updateData: any = {}
+    const updateData: TaskUpdateData = {}
     
     if (title !== undefined) updateData.title = title
     if (description !== undefined) updateData.description = description
