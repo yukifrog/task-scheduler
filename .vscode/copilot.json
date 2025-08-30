@@ -1,0 +1,11 @@
+{
+  "github.copilot.preferences": {
+    "commentLanguage": "mixed",
+    "enableLanguageConsistencyChecks": false
+  },
+  "github.copilot.chat.codeGeneration.instructions": [
+    "This project uses Japanese comments for business logic and UI elements.",
+    "Japanese comments are intentional and should not be flagged for language consistency.",
+    "Both Japanese and English comments are acceptable in this codebase."
+  ]
+}

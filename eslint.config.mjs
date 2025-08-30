@@ -20,6 +20,14 @@ const eslintConfig = [
       "next-env.d.ts",
     ],
   },
+  {
+    rules: {
+      // Allow Japanese comments - disable any comment-related language consistency rules
+      "spaced-comment": "off",
+      // Allow mixed language comments in this internationalized project
+      "@typescript-eslint/prefer-ts-expect-error": "off",
+    },
+  },
 ];
 
 export default eslintConfig;

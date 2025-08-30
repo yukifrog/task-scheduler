@@ -1,0 +1,46 @@
+{
+  "github.copilot.editor.enableAutoCompletions": true,
+  "github.copilot.enable": {
+    "*": true,
+    "plaintext": true,
+    "markdown": true,
+    "scminput": false
+  },
+  "github.copilot.advanced": {
+    "length": 500,
+    "temperature": "",
+    "top_p": "",
+    "stops": {
+      "*": ["\n\n\n"]
+    },
+    "indentationMode": {
+      "*": "automatic",
+      "python": "spaces",
+      "javascript": "automatic",
+      "typescript": "automatic"
+    }
+  },
+  "github.copilot.chat.localeOverride": "ja",
+  "github.copilot.chat.welcomeMessage": "never",
+  "github.copilot.inlineSuggest.enable": true,
+  "github.copilot.conversation.additionalLanguages": ["ja", "japanese"],
+  "files.associations": {
+    "*.tsx": "typescriptreact",
+    "*.ts": "typescript"
+  },
+  "typescript.preferences.includePackageJsonAutoImports": "auto",
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
+  "eslint.workingDirectories": ["."],
+  "eslint.options": {
+    "overrideConfigFile": "./eslint.config.mjs"
+  },
+  "editor.comments": {
+    "insertSpace": true
+  },
+  "emmet.preferences": {
+    "jsx.enabled": true
+  }
+}
