@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useSession, signOut } from 'next-auth/react'
+import Link from 'next/link'
 import { TaskList } from './TaskList'
 import { TaskForm } from './TaskForm'
 import { TaskTimer } from './TaskTimer'
@@ -28,7 +29,7 @@ interface Task {
     id: string
     title: string
   }
-  records: any[]
+  records: Record<string, unknown>[]
   _count: {
     records: number
   }
@@ -42,7 +43,6 @@ export function TaskDashboard() {
   )
   const [loading, setLoading] = useState(true)
   const [showTaskForm, setShowTaskForm] = useState(false)
-  const [editingTask, setEditingTask] = useState<Task | null>(null)
   const [activeTaskId, setActiveTaskId] = useState<string | null>(null)
 
   const fetchTasks = async (date?: string) => {
@@ -71,7 +71,7 @@ export function TaskDashboard() {
     setLoading(true)
   }
 
-  const handleTaskCreate = async (taskData: any) => {
+  const handleTaskCreate = async (taskData: Partial<Task>) => {
     try {
       const response = await fetch('/api/tasks', {
         method: 'POST',
@@ -93,7 +93,7 @@ export function TaskDashboard() {
     }
   }
 
-  const handleTaskUpdate = async (taskId: string, updates: any) => {
+  const handleTaskUpdate = async (taskId: string, updates: Partial<Task>) => {
     try {
       const response = await fetch(`/api/tasks/${taskId}`, {
         method: 'PUT',
@@ -173,12 +173,12 @@ export function TaskDashboard() {
         
         {/* Navigation */}
         <div className="flex space-x-1">
-          <a
+          <Link
             href="/"
             className="px-4 py-2 rounded-md bg-blue-600 text-white"
           >
             ダッシュボード
-          </a>
+          </Link>
           <a
             href="/routines"
             className="px-4 py-2 rounded-md text-gray-600 hover:bg-gray-100"

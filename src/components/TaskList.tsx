@@ -18,7 +18,7 @@ interface Task {
 
 interface TaskListProps {
   tasks: Task[]
-  onTaskUpdate: (taskId: string, updates: any) => void
+  onTaskUpdate: (taskId: string, updates: Record<string, unknown>) => void
   onTaskDelete: (taskId: string) => void
   onTaskStart: (taskId: string) => void
   onTaskPause: (taskId: string) => void
@@ -28,7 +28,6 @@ interface TaskListProps {
 
 export function TaskList({ 
   tasks, 
-  onTaskUpdate, 
   onTaskDelete, 
   onTaskStart, 
   onTaskPause, 

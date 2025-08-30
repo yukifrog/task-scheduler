@@ -4,6 +4,15 @@ import { authOptions } from '@/auth'
 import { prisma } from '@/lib/prisma'
 import { TaskStatus, Priority, Importance } from '@prisma/client'
 
+interface TaskWhereClause {
+  userId: string
+  plannedDate?: {
+    gte: Date
+    lt: Date
+  }
+  status?: TaskStatus
+}
+
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
@@ -16,7 +25,7 @@ export async function GET(request: NextRequest) {
     const date = searchParams.get('date')
     const status = searchParams.get('status')
     
-    const whereClause: any = {
+    const whereClause: TaskWhereClause = {
       userId: session.user.id,
     }
     

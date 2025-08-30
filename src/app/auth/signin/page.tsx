@@ -3,9 +3,11 @@
 import { signIn, getProviders } from 'next-auth/react'
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
+import type { BuiltInProviderType } from 'next-auth/providers'
+import type { ClientSafeProvider, LiteralUnion } from 'next-auth/react'
 
 export default function SignInPage() {
-  const [providers, setProviders] = useState<any>(null)
+  const [providers, setProviders] = useState<Record<LiteralUnion<BuiltInProviderType>, ClientSafeProvider> | null>(null)
   const [email, setEmail] = useState('')
   const searchParams = useSearchParams()
   const error = searchParams.get('error')
@@ -99,8 +101,8 @@ export default function SignInPage() {
           {/* OAuth Providers */}
           <div className="space-y-3">
             {Object.values(providers)
-              .filter((provider: any) => provider.id !== 'email')
-              .map((provider: any) => (
+              .filter((provider: ClientSafeProvider) => provider.id !== 'email')
+              .map((provider: ClientSafeProvider) => (
                 <button
                   key={provider.name}
                   onClick={() => signIn(provider.id, { callbackUrl: '/' })}
