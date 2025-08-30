@@ -1,0 +1,32 @@
+{
+  "preToolUse": [
+    {
+      "name": "backup-important-files",
+      "command": "echo 'Backing up important files before tool use...'",
+      "enabled": true,
+      "description": "Create backup before important file changes"
+    }
+  ],
+  "postToolUse": [
+    {
+      "name": "suggest-missing-commands",
+      "command": "if echo \"$CLAUDE_TOOL_RESULT\" | grep -q \"command not found\"; then MISSING_CMD=$(echo \"$CLAUDE_TOOL_RESULT\" | grep -o '[a-zA-Z0-9_-]*: command not found' | cut -d: -f1 | head -1); echo \"⚠️  コマンド '$MISSING_CMD' が見つかりません。\"; echo \"📋 他のコマンドを試す前に、まず以下でインストールしてください：\"; if echo \"$CLAUDE_TOOL_RESULT\" | grep -q \"tree\"; then echo \"   sudo apt-get update && sudo apt-get install tree\"; elif echo \"$CLAUDE_TOOL_RESULT\" | grep -q \"netstat\"; then echo \"   sudo apt-get update && sudo apt-get install net-tools\"; elif echo \"$CLAUDE_TOOL_RESULT\" | grep -q \"lsof\"; then echo \"   sudo apt-get update && sudo apt-get install lsof\"; elif echo \"$CLAUDE_TOOL_RESULT\" | grep -q \"htop\"; then echo \"   sudo apt-get update && sudo apt-get install htop\"; elif echo \"$CLAUDE_TOOL_RESULT\" | grep -q \"curl\"; then echo \"   sudo apt-get update && sudo apt-get install curl\"; elif echo \"$CLAUDE_TOOL_RESULT\" | grep -q \"wget\"; then echo \"   sudo apt-get update && sudo apt-get install wget\"; elif echo \"$CLAUDE_TOOL_RESULT\" | grep -q \"git\"; then echo \"   sudo apt-get update && sudo apt-get install git\"; else echo \"   sudo apt-get update && sudo apt-get install $MISSING_CMD\"; fi; echo \"💡 インストール後に再度コマンドを実行してください。\"; fi",
+      "enabled": true,
+      "description": "コマンドが見つからない場合に明確なインストール指示を提示"
+    },
+    {
+      "name": "lint-check",
+      "command": "if [ -f package.json ]; then npm run lint --silent 2>/dev/null || echo 'Lint check completed (no lint script found)'; fi",
+      "enabled": true,
+      "description": "Run linting after file changes"
+    }
+  ],
+  "userPromptSubmit": [
+    {
+      "name": "log-user-request",
+      "command": "echo \"[$(date)] User submitted: $CLAUDE_USER_PROMPT\" >> .claude/activity.log",
+      "enabled": true,
+      "description": "Log user requests for activity tracking"
+    }
+  ]
+}

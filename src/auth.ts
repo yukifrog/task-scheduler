@@ -1,14 +1,9 @@
 import { NextAuthOptions } from 'next-auth'
-import { PrismaAdapter } from '@auth/prisma-adapter'
-import { PrismaClient } from '@prisma/client'
 import GoogleProvider from 'next-auth/providers/google'
 import GitHubProvider from 'next-auth/providers/github'
 import CredentialsProvider from 'next-auth/providers/credentials'
 
-const prisma = new PrismaClient()
-
 export const authOptions: NextAuthOptions = {
-  adapter: PrismaAdapter(prisma) as any,
   providers: [
     // 開発用の簡単ログイン（本番では使用しない）
     CredentialsProvider({
@@ -58,18 +53,18 @@ export const authOptions: NextAuthOptions = {
   
   callbacks: {
     async session({ token, session }) {
-      if (token) {
-        session.user.id = token.id
-        session.user.name = token.name
-        session.user.email = token.email
-        session.user.image = token.picture
+      if (token && session.user) {
+        session.user.id = token.id as string
+        session.user.name = token.name as string
+        session.user.email = token.email as string
+        session.user.image = token.picture as string
       }
       return session
     },
     
     async jwt({ user, token }) {
       if (user) {
-        token.id = user?.id
+        token.id = user.id
       }
       return token
     },
