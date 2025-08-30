@@ -16,8 +16,8 @@ export default defineConfig({
   reporter: 'html',
   
   use: {
-    // ベースURL
-    baseURL: 'http://localhost:3000',
+    // ベースURL（現在のポート設定に合わせる）
+    baseURL: 'http://localhost:3001',
     
     // トレース設定
     trace: 'on-first-retry',
@@ -59,7 +59,7 @@ export default defineConfig({
   // 開発サーバー設定
   webServer: {
     command: 'npm run dev',
-    url: 'http://localhost:3000',
+    url: 'http://localhost:3001',
     reuseExistingServer: !process.env.CI,
   },
 })

@@ -153,21 +153,39 @@ export function TaskDashboard() {
   return (
     <div className="max-w-7xl mx-auto p-6">
       {/* Header */}
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">
-            タスクスケジューラー
-          </h1>
-          <p className="text-gray-600">
-            こんにちは、{session?.user?.name || session?.user?.email}さん
-          </p>
+      <div className="mb-6">
+        <div className="flex justify-between items-center mb-4">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">
+              タスクスケジューラー
+            </h1>
+            <p className="text-gray-600">
+              こんにちは、{session?.user?.name || session?.user?.email}さん
+            </p>
+          </div>
+          <button
+            onClick={() => signOut()}
+            className="text-gray-500 hover:text-gray-700"
+          >
+            サインアウト
+          </button>
         </div>
-        <button
-          onClick={() => signOut()}
-          className="text-gray-500 hover:text-gray-700"
-        >
-          サインアウト
-        </button>
+        
+        {/* Navigation */}
+        <div className="flex space-x-1">
+          <a
+            href="/"
+            className="px-4 py-2 rounded-md bg-blue-600 text-white"
+          >
+            ダッシュボード
+          </a>
+          <a
+            href="/routines"
+            className="px-4 py-2 rounded-md text-gray-600 hover:bg-gray-100"
+          >
+            ルーティン管理
+          </a>
+        </div>
       </div>
 
       {/* Date Selector & Stats */}

@@ -22,27 +22,29 @@
 
 ### ✅ 完了した機能
 1. **基盤構築**: Docker環境、Next.js、Prisma
-2. **認証システム**: NextAuth.jsによるデモログイン
+2. **認証システム**: NextAuth.jsによるデモログイン（JWT戦略）
 3. **CRUD機能**: タスクの作成・読み取り・更新・削除
 4. **UI/UX**: TaskList、TaskForm、TaskTimer、DailyStats
 5. **Playwrightテスト**: E2Eテスト環境
+6. **MCP連携**: GitHub MCPサーバーとの接続確立
+7. **ルーティン機能**: 繰り返しタスクの管理と自動タスク生成
 
 ### 🔄 進行中
-6. **Hook機能**: 
-   - コミット時の自動lint/test
-   - ビルド時のセキュリティチェック
-   - デプロイ前のE2Eテスト
+8. **Hook機能**: 
+   - ✅ コマンド不足時の自動インストール提案機能を実装
+   - ✅ 既存のpreToolUse, postToolUse, userPromptSubmitフックを設定
+   - 🔄 新セッションでのHook機能テスト待ち（現セッションで出力が見えない問題）
 
 ### 📋 予定
-7. **Subagent機能**: 
+8. **Subagent機能**: 
    - ルーティンタスクの設計調査
    - パフォーマンス最適化提案
    - 外部API仕様調査
 
-8. **MCP連携**: 
-   - Discord/Telegram通知
-   - GitHub Issues連携
-   - 外部API統合管理
+9. **GitHub MCP活用**: 
+   - リポジトリ操作の自動化
+   - Issue/PR管理
+   - コミット・プッシュの自動化
 
 ## コマンド集
 
@@ -91,6 +93,37 @@ docker compose logs -f
 docker compose down
 ```
 
+### Claude Code MCP用コマンド
+```bash
+# MCP接続確認
+claude mcp list
+
+# GitHub MCP詳細確認
+claude mcp get github
+
+# GitHub認証確認
+gh auth status
+```
+
+### 本セッションでの成果
+```bash
+# 新機能追加
+- ルーティン管理API (/api/routines)
+- ルーティンからタスク生成API (/api/routines/[id]/generate-task)  
+- ルーティン管理UI (/routines)
+- ナビゲーション追加
+- 認証システム修正（JWT戦略）
+
+# Hook機能実装
+- suggest-missing-commands: コマンド不足時自動提案
+- 既存のlint-check, backup-important-files, log-user-request保持
+- 新セッションでのテスト必要
+
+# 開発サーバー状況
+- localhost:3001で正常稼働中
+- ポート3000/3001の重複問題あり（要調査）
+```
+
 ## Claude Code Hook設定例
 
 以下は学習予定のHook設定です：
@@ -133,8 +166,8 @@ task-scheduler/
 - [x] 基本CRUD機能
 - [x] 認証システム
 - [x] E2Eテスト環境
+- [x] GitHub MCP連携基盤
+- [x] ルーティンタスク管理機能
+- [x] Subagent活用（専門エージェント活用）
 - [ ] Hook機能設定
-- [ ] Subagent活用
-- [ ] MCP連携実装
-- [ ] ルーティンタスク管理
-- [ ] 外部サービス連携
+- [ ] GitHub MCP活用実装
