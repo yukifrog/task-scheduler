@@ -71,7 +71,17 @@ export function TaskDashboard() {
     setLoading(true)
   }
 
-  const handleTaskCreate = async (taskData: Partial<Task>) => {
+  const handleTaskCreate = async (taskData: {
+    title: string
+    description?: string
+    category?: string
+    plannedDate: string
+    plannedStartTime?: string | null
+    estimatedMinutes: number
+    priority: string
+    importance: string
+    tags: string[]
+  }) => {
     try {
       const response = await fetch('/api/tasks', {
         method: 'POST',

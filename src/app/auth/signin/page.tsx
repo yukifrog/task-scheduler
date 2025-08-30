@@ -1,13 +1,12 @@
 'use client'
 
 import { signIn, getProviders } from 'next-auth/react'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
-import type { BuiltInProviderType } from 'next-auth/providers'
-import type { ClientSafeProvider, LiteralUnion } from 'next-auth/react'
+import type { ClientSafeProvider } from 'next-auth/react'
 
-export default function SignInPage() {
-  const [providers, setProviders] = useState<Record<LiteralUnion<BuiltInProviderType>, ClientSafeProvider> | null>(null)
+function SignInForm() {
+  const [providers, setProviders] = useState<Record<string, ClientSafeProvider> | null>(null)
   const [email, setEmail] = useState('')
   const searchParams = useSearchParams()
   const error = searchParams.get('error')
@@ -115,5 +114,13 @@ export default function SignInPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function SignInPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <SignInForm />
+    </Suspense>
   )
 }
