@@ -5,9 +5,6 @@ const nextConfig: NextConfig = {
   devIndicators: {
     buildActivity: false,
   },
-  experimental: {
-    devToolsButton: false,
-  },
 };
 
 export default nextConfig;
