@@ -7,7 +7,7 @@ interface TaskData {
   description?: string
   category?: string
   plannedDate: string
-  plannedStartTime?: string
+  plannedStartTime?: string | null
   estimatedMinutes: number
   priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'
   importance: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL'
@@ -15,7 +15,7 @@ interface TaskData {
 }
 
 interface TaskFormProps {
-  onSubmit: (taskData: TaskData) => void
+  onSubmit: (taskData: TaskData) => Promise<void>
   onCancel: () => void
   selectedDate: string
 }
@@ -41,6 +41,7 @@ export function TaskForm({ onSubmit, onCancel, selectedDate }: TaskFormProps) {
     try {
       const taskData = {
         ...formData,
+        plannedDate: selectedDate,
         plannedStartTime: formData.plannedStartTime 
           ? `${selectedDate}T${formData.plannedStartTime}:00`
           : null,

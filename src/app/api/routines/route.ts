@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { title, description, repeatType, repeatInterval, estimatedMinutes } = body
+    const { title, description, repeatType, repeatValue, estimatedMinutes } = body
 
     const routine = await prisma.routine.create({
       data: {
@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
         title,
         description: description || null,
         repeatType,
-        repeatInterval: repeatInterval || 1,
+        repeatValue: repeatValue || 1,
         estimatedMinutes: estimatedMinutes || 60,
       },
     })

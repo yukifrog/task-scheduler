@@ -3,11 +3,10 @@
 import { signIn, getProviders } from 'next-auth/react'
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
-import type { BuiltInProviderType } from 'next-auth/providers'
 import type { ClientSafeProvider, LiteralUnion } from 'next-auth/react'
 
 export default function SignInPage() {
-  const [providers, setProviders] = useState<Record<LiteralUnion<BuiltInProviderType>, ClientSafeProvider> | null>(null)
+  const [providers, setProviders] = useState<Record<LiteralUnion<string>, ClientSafeProvider> | null>(null)
   const [email, setEmail] = useState('')
   const searchParams = useSearchParams()
   const error = searchParams.get('error')
