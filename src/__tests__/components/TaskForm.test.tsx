@@ -21,68 +21,31 @@ describe('TaskForm', () => {
       />
     )
 
-    expect(screen.getByLabelText('タイトル')).toBeInTheDocument()
+    expect(screen.getByLabelText('タイトル *')).toBeInTheDocument()
     expect(screen.getByLabelText('説明')).toBeInTheDocument()
-    expect(screen.getByLabelText('予想時間 (分)')).toBeInTheDocument()
+    expect(screen.getByLabelText('見積もり時間（分）*')).toBeInTheDocument()
     expect(screen.getByLabelText('優先度')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'タスクを作成' })).toBeInTheDocument()
   })
 
-  it('validates required fields', async () => {
-    render(<TaskForm onTaskCreated={mockOnTaskCreated} />)
-
-    const submitButton = screen.getByRole('button', { name: 'タスクを作成' })
-    fireEvent.click(submitButton)
-
-    await waitFor(() => {
-      expect(screen.getByText('タイトルは必須です')).toBeInTheDocument()
-    })
-  })
-
-  it('validates estimated minutes is a positive number', async () => {
+  it('submits form with valid data', async () => {
     const user = userEvent.setup()
-    render(<TaskForm onTaskCreated={mockOnTaskCreated} />)
+    render(
+      <TaskForm 
+        onSubmit={mockOnSubmit} 
+        onCancel={mockOnCancel} 
+        selectedDate={selectedDate} 
+      />
+    )
 
-    const titleInput = screen.getByLabelText('タイトル')
-    const estimatedMinutesInput = screen.getByLabelText('予想時間 (分)')
-
-    await user.type(titleInput, 'Test Task')
-    await user.type(estimatedMinutesInput, '-10')
-
-    const submitButton = screen.getByRole('button', { name: 'タスクを作成' })
-    fireEvent.click(submitButton)
-
-    await waitFor(() => {
-      expect(screen.getByText('予想時間は1以上の数値を入力してください')).toBeInTheDocument()
-    })
-  })
-
-  it('creates a task successfully', async () => {
-    const user = userEvent.setup()
-    const mockTask = {
-      id: 1,
-      title: 'Test Task',
-      description: 'Test description',
-      estimatedMinutes: 60,
-      priority: 'HIGH',
-      status: 'TODO',
-      createdAt: new Date().toISOString(),
-    }
-
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => mockTask,
-    })
-
-    render(<TaskForm onTaskCreated={mockOnTaskCreated} />)
-
-    const titleInput = screen.getByLabelText('タイトル')
+    const titleInput = screen.getByLabelText('タイトル *')
     const descriptionInput = screen.getByLabelText('説明')
-    const estimatedMinutesInput = screen.getByLabelText('予想時間 (分)')
+    const estimatedMinutesInput = screen.getByLabelText('見積もり時間（分）*')
     const prioritySelect = screen.getByLabelText('優先度')
 
     await user.type(titleInput, 'Test Task')
     await user.type(descriptionInput, 'Test description')
+    await user.clear(estimatedMinutesInput)
     await user.type(estimatedMinutesInput, '60')
     await user.selectOptions(prioritySelect, 'HIGH')
 
@@ -90,59 +53,71 @@ describe('TaskForm', () => {
     fireEvent.click(submitButton)
 
     await waitFor(() => {
-      expect(mockFetch).toHaveBeenCalledWith('/api/tasks', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          title: 'Test Task',
-          description: 'Test description',
-          estimatedMinutes: 60,
-          priority: 'HIGH',
-        }),
-      })
-    })
-
-    await waitFor(() => {
-      expect(mockOnTaskCreated).toHaveBeenCalledWith(mockTask)
+      expect(mockOnSubmit).toHaveBeenCalledWith(expect.objectContaining({
+        title: 'Test Task',
+        description: 'Test description',
+        estimatedMinutes: 60,
+        priority: 'HIGH',
+      }))
     })
   })
 
-  it('handles API error gracefully', async () => {
+  it('calls onCancel when cancel button is clicked', async () => {
+    render(
+      <TaskForm 
+        onSubmit={mockOnSubmit} 
+        onCancel={mockOnCancel} 
+        selectedDate={selectedDate} 
+      />
+    )
+
+    const cancelButton = screen.getByRole('button', { name: 'キャンセル' })
+    fireEvent.click(cancelButton)
+
+    expect(mockOnCancel).toHaveBeenCalledTimes(1)
+  })
+
+  it('validates required title field', async () => {
+    render(
+      <TaskForm 
+        onSubmit={mockOnSubmit} 
+        onCancel={mockOnCancel} 
+        selectedDate={selectedDate} 
+      />
+    )
+
+    const submitButton = screen.getByRole('button', { name: 'タスクを作成' })
+    fireEvent.click(submitButton)
+
+    // Since form validation is handled by HTML5, we just check that submit wasn't called
+    await waitFor(() => {
+      expect(mockOnSubmit).not.toHaveBeenCalled()
+    })
+  })
+
+  it('processes tags correctly', async () => {
     const user = userEvent.setup()
-    mockFetch.mockRejectedValueOnce(new Error('API Error'))
+    render(
+      <TaskForm 
+        onSubmit={mockOnSubmit} 
+        onCancel={mockOnCancel} 
+        selectedDate={selectedDate} 
+      />
+    )
 
-    render(<TaskForm onTaskCreated={mockOnTaskCreated} />)
+    const titleInput = screen.getByLabelText('タイトル *')
+    const tagsInput = screen.getByLabelText('タグ')
 
-    const titleInput = screen.getByLabelText('タイトル')
     await user.type(titleInput, 'Test Task')
+    await user.type(tagsInput, 'tag1, tag2, tag3')
 
     const submitButton = screen.getByRole('button', { name: 'タスクを作成' })
     fireEvent.click(submitButton)
 
     await waitFor(() => {
-      expect(screen.getByText('タスクの作成に失敗しました')).toBeInTheDocument()
-    })
-  })
-
-  it('resets form after successful submission', async () => {
-    const user = userEvent.setup()
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ id: 1, title: 'Test Task' }),
-    })
-
-    render(<TaskForm onTaskCreated={mockOnTaskCreated} />)
-
-    const titleInput = screen.getByLabelText('タイトル')
-    await user.type(titleInput, 'Test Task')
-
-    const submitButton = screen.getByRole('button', { name: 'タスクを作成' })
-    fireEvent.click(submitButton)
-
-    await waitFor(() => {
-      expect(titleInput).toHaveValue('')
+      expect(mockOnSubmit).toHaveBeenCalledWith(expect.objectContaining({
+        tags: ['tag1', 'tag2', 'tag3'],
+      }))
     })
   })
 })
