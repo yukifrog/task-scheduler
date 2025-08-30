@@ -43,7 +43,7 @@ jobs:
         run: |
           echo "DATABASE_URL=postgresql://test_user:test_password@localhost:5432/test_db" >> $GITHUB_ENV
           echo "NEXTAUTH_SECRET=test_secret_key_for_ci" >> $GITHUB_ENV
-          echo "NEXTAUTH_URL=http://localhost:3000" >> $GITHUB_ENV
+          echo "NEXTAUTH_URL=http://localhost:3001" >> $GITHUB_ENV
 
       - name: Run database migrations
         run: npx prisma migrate deploy
