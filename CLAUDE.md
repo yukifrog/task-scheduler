@@ -35,6 +35,12 @@
    - ✅ 既存のpreToolUse, postToolUse, userPromptSubmitフックを設定
    - 🔄 新セッションでのHook機能テスト待ち（現セッションで出力が見えない問題）
 
+9. **GitHub ワークフロースコープ問題解決**:
+   - ✅ GitHub token workflow スコープ不足問題の分析完了
+   - ✅ Prisma telemetry 無効化の代替ソリューション実装
+   - ✅ CI環境変数自動注入スクリプト作成
+   - ✅ 手動ワークフロー修正ガイド作成
+
 ### 📋 予定
 8. **Subagent機能**: 
    - ルーティンタスクの設計調査
@@ -93,7 +99,23 @@ docker compose logs -f
 docker compose down
 ```
 
-### Claude Code MCP用コマンド
+### GitHub Workflow & CI用コマンド
+```bash
+# CI環境変数自動設定
+source ./scripts/inject-ci-env.sh
+
+# Prisma telemetry 設定確認
+./scripts/configure-prisma-telemetry.sh
+
+# 環境変数テスト（設定はしない）
+./scripts/inject-ci-env.sh --test
+
+# 手動用export コマンド生成
+./scripts/inject-ci-env.sh --export
+
+# ワークフロー修正ソリューション検証
+./scripts/verify-workflow-fix.sh
+```
 ```bash
 # MCP接続確認
 claude mcp list
@@ -105,7 +127,7 @@ claude mcp get github
 gh auth status
 ```
 
-### 本セッションでの成果
+### Claude Code MCP用コマンド
 ```bash
 # 新機能追加
 - ルーティン管理API (/api/routines)
@@ -118,6 +140,12 @@ gh auth status
 - suggest-missing-commands: コマンド不足時自動提案
 - 既存のlint-check, backup-important-files, log-user-request保持
 - 新セッションでのテスト必要
+
+# GitHub ワークフロースコープ問題解決
+- workflow スコープ不足でCI修正ができない問題に対処
+- Prisma telemetry無効化の代替ソリューション実装
+- CI環境変数自動注入システム構築
+- 手動ワークフロー修正ガイド完備
 
 # 開発サーバー状況
 - localhost:3001で正常稼働中
