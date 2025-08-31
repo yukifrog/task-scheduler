@@ -1,6 +1,7 @@
-#!/bin/bash
-# CI Cache Validation Script
 # This script simulates the cache optimization logic locally
+# 
+# To make this script executable, run:
+#   chmod +x scripts/validate-ci-cache.sh
 
 set -e
 
