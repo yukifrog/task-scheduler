@@ -32,7 +32,7 @@ export class TestUtils {
         if (await element.isVisible({ timeout: timeout / selectors.length })) {
           return element
         }
-      } catch (error) {
+      } catch {
         // Continue to next selector
       }
     }

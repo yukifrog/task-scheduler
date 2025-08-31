@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+/* eslint-disable @typescript-eslint/no-require-imports, @next/next/no-assign-module-variable */
+
 /**
  * Application health check script
  * This script tests basic connectivity and routing without full E2E
