@@ -92,7 +92,14 @@ if [ "$total_caches" -gt 0 ]; then
     echo "🛠️  Generating cleanup commands..."
     
     # Get old caches (older than 7 days)
-    seven_days_ago=$(date -d '7 days ago' -u +%Y-%m-%dT%H:%M:%SZ)
+    # Portable "7 days ago" calculation for GNU and BSD date
+    if date --version >/dev/null 2>&1; then
+        # GNU date
+        seven_days_ago=$(date -d '7 days ago' -u +%Y-%m-%dT%H:%M:%SZ)
+    else
+        # BSD date (macOS)
+        seven_days_ago=$(date -u -v-7d +%Y-%m-%dT%H:%M:%SZ)
+    fi
     old_caches=$(echo "$cache_data" | jq -r --arg cutoff "$seven_days_ago" '
         .actions_caches[] | 
         select(.last_accessed_at < $cutoff) | 
