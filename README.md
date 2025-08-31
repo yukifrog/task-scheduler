@@ -116,4 +116,17 @@ npm run ci:monitor
 
 # Generate performance report
 npm run ci:report
+
+# Test network connectivity
+npm run test:network-connectivity
 ```
+
+### Network Configuration
+The project requires access to external services for full functionality:
+- **GitHub API**: CI performance monitoring
+- **Prisma Services**: Binary downloads and telemetry
+- **Google Fonts**: UI font loading
+
+If experiencing connectivity issues in CI environments, configure the Repository Custom Allowlist:
+📖 **Setup Guide**: [Custom Allowlist Configuration](.github/CUSTOM_ALLOWLIST_CONFIGURATION.md)
+⚡ **Quick Setup**: [Quick Allowlist Setup](.github/QUICK_ALLOWLIST_SETUP.md)

@@ -240,8 +240,16 @@ CI_MONITOR_DURATION_THRESHOLD=300
    - Check browser console for errors
    - Ensure authentication is working
 
+4. **"Network connectivity issues" / "ENOTFOUND api.github.com"**
+   - Configure Repository Custom Allowlist (see below)
+   - Test connectivity: `npm run test:network-connectivity`
+   - Verify firewall/network restrictions
+
 ### Debug Commands
 ```bash
+# Test network connectivity first
+npm run test:network-connectivity
+
 # Test with verbose output
 node scripts/ci-performance-monitor.js --verbose
 
@@ -250,7 +258,21 @@ curl http://localhost:3001/api/ci-performance/summary
 
 # Validate configuration
 npm run ci:monitor -- --help
+
+# Test specific host connectivity
+node scripts/test-network-connectivity.js --host=api.github.com --verbose
 ```
+
+### Network Connectivity Requirements
+
+The CI performance monitoring system requires network access to:
+- `api.github.com` - GitHub API for workflow data
+- Additional hosts for full functionality (see Custom Allowlist configuration)
+
+**If experiencing network connectivity issues:**
+1. Test connectivity: `npm run test:network-connectivity`
+2. Configure Repository Custom Allowlist: [CUSTOM_ALLOWLIST_CONFIGURATION.md](CUSTOM_ALLOWLIST_CONFIGURATION.md)
+3. Verify all required hosts are allowlisted
 
 ## Future Enhancements
 
@@ -263,8 +285,10 @@ npm run ci:monitor -- --help
 ## Related Documentation
 
 - [CI Caching Strategy](.github/CACHING_STRATEGY.md)
+- [Custom Allowlist Configuration](.github/CUSTOM_ALLOWLIST_CONFIGURATION.md) ⭐ **New**
 - [GitHub Actions Optimization](README.md#cicd-optimization)
 - [Performance Validation](scripts/validate-ci-cache.sh)
+- [Network Connectivity Testing](scripts/test-network-connectivity.js)
 
 ## Support
 

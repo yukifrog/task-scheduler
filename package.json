@@ -16,6 +16,7 @@
     "test:unit:coverage": "jest --coverage",
     "test:validate": "node scripts/validate-tests.js",
     "test:health": "node scripts/health-check.js",
+    "test:network-connectivity": "node scripts/test-network-connectivity.js",
     "ci:monitor": "node scripts/ci-performance-monitor.js",
     "ci:monitor:mock": "node scripts/ci-performance-monitor.js --mock",
     "ci:report": "node scripts/generate-performance-report.js",

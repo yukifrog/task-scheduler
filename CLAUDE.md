@@ -41,13 +41,20 @@
    - ✅ CI環境変数自動注入スクリプト作成
    - ✅ 手動ワークフロー修正ガイド作成
 
+10. **Repository Custom Allowlist設定**:
+   - ✅ ネットワーク制限問題の分析完了
+   - ✅ 必要なAllowlistホストの特定
+   - ✅ ネットワーク接続テストスクリプト作成
+   - ✅ 管理者向け設定ガイド作成
+   - ✅ CI性能監視関連ドキュメント更新
+
 ### 📋 予定
-8. **Subagent機能**: 
+11. **Subagent機能**: 
    - ルーティンタスクの設計調査
    - パフォーマンス最適化提案
    - 外部API仕様調査
 
-9. **GitHub MCP活用**: 
+12. **GitHub MCP活用**: 
    - リポジトリ操作の自動化
    - Issue/PR管理
    - コミット・プッシュの自動化
@@ -124,6 +131,27 @@ npm run ci:monitor:mock
 
 # CI パフォーマンス レポート生成
 npm run ci:report
+
+# ネットワーク接続テスト
+npm run test:network-connectivity
+
+# 詳細ネットワーク接続テスト
+npm run test:network-connectivity -- --verbose
+
+# 特定ホストテスト
+npm run test:network-connectivity -- --host=api.github.com
+```
+
+### ネットワーク設定・Allowlist用コマンド
+```bash
+# Repository Custom Allowlist設定が必要なホスト確認
+npm run test:network-connectivity
+
+# 特定ホストの接続テスト
+node scripts/test-network-connectivity.js --host=binaries.prisma.sh --verbose
+
+# Allowlist設定後の検証
+npm run test:network-connectivity && echo "Allowlist configuration successful!"
 ```
 ```bash
 # MCP接続確認
