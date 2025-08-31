@@ -1,0 +1,64 @@
+# Test workflow to validate caching effectiveness
+name: Cache Test
+
+on:
+  workflow_dispatch:  # Manual trigger for testing
+
+jobs:
+  cache-test:
+    name: Cache Performance Test
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Cache npm dependencies
+        uses: actions/cache@v4
+        id: npm-cache
+        with:
+          path: ~/.npm
+          key: npm-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            npm-${{ runner.os }}-
+
+      - name: Install dependencies
+        run: |
+          if [ "${{ steps.npm-cache.outputs.cache-hit }}" = "true" ]; then
+            echo "NPM cache hit! 🎉"
+          else
+            echo "NPM cache miss 😢"
+          fi
+          time npm ci
+
+      - name: Get Playwright version
+        id: playwright-version
+        run: |
+          VERSION=$(node -e "try { const pkg = require('./node_modules/@playwright/test/package.json'); console.log(pkg.version); } catch (e) { console.log(''); }")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        id: playwright-cache
+        with:
+          path: |
+            ~/.cache/ms-playwright
+          key: playwright-browsers-${{ runner.os }}-${{ steps.playwright-version.outputs.version }}
+
+      - name: Install Playwright browsers
+        run: |
+          if [ "${{ steps.playwright-cache.outputs.cache-hit }}" = "true" ]; then
+            echo "Playwright cache hit! 🎉"
+            npx playwright install-deps chromium
+          else
+            echo "Playwright cache miss 😢"
+            time npx playwright install chromium --with-deps
+          fi
+
+      - name: Verify Playwright installation
+        run: npx playwright --version
