@@ -96,7 +96,8 @@ jobs:
       # Get Playwright version for cache key
       - name: Get Playwright version
         id: playwright-version
-        run: echo "version=$(npm ls @playwright/test --depth=0 --json | jq -r '.dependencies["@playwright/test"].version')" >> $GITHUB_OUTPUT
+        run: |
+          echo "version=$(node -p "require('./package.json').dependencies?.['@playwright/test'] || require('./package.json').devDependencies?.['@playwright/test'] || ''")" >> $GITHUB_OUTPUT
 
       # Cache only chromium browser (as per playwright.config.ts)
       - name: Cache Playwright browsers
