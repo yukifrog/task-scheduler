@@ -22,8 +22,14 @@ if ! gh auth status &> /dev/null; then
     exit 1
 fi
 
-REPO="yukifrog/task-scheduler"
+# Allow repository to be set via first argument, default to yukifrog/task-scheduler
+REPO="${1:-yukifrog/task-scheduler}"
 
+if [[ "$1" == "-h" || "$1" == "--help" ]]; then
+    echo "Usage: $0 [owner/repo]"
+    echo "  owner/repo: GitHub repository (default: yukifrog/task-scheduler)"
+    exit 0
+fi
 echo "📊 Fetching cache data for ${REPO}..."
 echo ""
 
