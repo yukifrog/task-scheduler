@@ -10,25 +10,9 @@ GitHub tokens require the `workflow` scope to modify files in `.github/workflows
 (refusing to allow an OAuth App to create or update workflow `.github/workflows/ci.yml` without `workflow` scope)
 ```
 
-## Required Changes for Prisma Telemetry
+## Complete Prisma Telemetry Disabling Implementation
 
-The CI workflow needs the following environment variable to disable Prisma telemetry:
-
-```yaml
-env:
-  # Existing environment variables
-  DATABASE_URL: postgresql://test_user:test_password@localhost:5432/test_db
-  NEXTAUTH_SECRET: test_secret_key_for_ci
-  NEXTAUTH_URL: http://localhost:3001
-  # Add this line to disable Prisma telemetry
-  CHECKPOINT_TELEMETRY: 0
-```
-
-## Manual Steps to Apply Changes
-
-### Step 1: Add Prisma Telemetry Environment Variable
-
-Edit `.github/workflows/ci.yml` and add `CHECKPOINT_TELEMETRY: 0` to the `env:` section at the top of the file:
+The CI workflow needs the following environment variables for complete Prisma telemetry and binary cache optimization:
 
 ```yaml
 env:
@@ -36,20 +20,63 @@ env:
   DATABASE_URL: postgresql://test_user:test_password@localhost:5432/test_db
   NEXTAUTH_SECRET: test_secret_key_for_ci
   NEXTAUTH_URL: http://localhost:3001
-  CHECKPOINT_TELEMETRY: 0  # ← Add this line
+  
+  # Prisma完全無効化設定
+  PRISMA_DISABLE_TELEMETRY: true
+  PRISMA_SKIP_POSTINSTALL_GENERATE: true
+  PRISMA_QUERY_ENGINE_BINARY_CACHE_DIR: ./prisma-cache
+  PRISMA_HIDE_HINTS: true
+  CHECKPOINT_DISABLE: 1
+  CHECKPOINT_TELEMETRY: 0
+  
+  # Next.js telemetry disable
+  NEXT_TELEMETRY_DISABLED: 1
 ```
 
-### Step 2: Alternative - Set per Job
+## Required Changes for Complete Implementation
 
-If global environment variable doesn't work, add it to specific jobs:
+### Step 1: Update CI Workflow Environment Variables
+
+Edit `.github/workflows/ci.yml` and update the `env:` section to include all Prisma telemetry disabling variables as shown above.
+
+### Step 2: Update Prisma Binary Caching
+
+Replace the existing Prisma cache configuration with optimized binary caching:
 
 ```yaml
-jobs:
-  test:
-    name: Test
-    runs-on: ubuntu-latest
-    env:
-      CHECKPOINT_TELEMETRY: 0  # Add this line
+      # Cache Prisma binaries and client 
+      - name: Cache Prisma binaries
+        uses: actions/cache@v4
+        with:
+          path: |
+            ./prisma-cache
+            node_modules/.prisma
+            node_modules/@prisma/client
+          key: prisma-binaries-${{ runner.os }}-${{ hashFiles('prisma/schema.prisma') }}
+          restore-keys: |
+            prisma-binaries-${{ runner.os }}-
+
+      - name: Generate Prisma client (offline)
+        run: |
+          export PRISMA_DISABLE_TELEMETRY=true
+          export CHECKPOINT_DISABLE=1
+          export CHECKPOINT_TELEMETRY=0
+          npx prisma generate --no-engine
+        env:
+          DATABASE_URL: ${{ env.DATABASE_URL }}
+```
+
+### Step 3: Update package.json Scripts
+
+Add optimized Prisma scripts to `package.json`:
+
+```json
+{
+  "scripts": {
+    "postinstall": "prisma generate --no-engine",
+    "prisma:generate": "prisma generate --no-engine"
+  }
+}
 ```
 
 ## Solutions for GitHub Token Scope

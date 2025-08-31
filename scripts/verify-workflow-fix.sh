@@ -35,7 +35,7 @@ done
 # Step 2: Test environment injection
 echo ""
 echo "🧪 Testing environment injection..."
-if ./scripts/inject-ci-env.sh --test >/dev/null 2>&1; then
+if ./scripts/inject-ci-env.sh --test 2>&1 | grep -q "Would set:"; then
     echo "✅ Environment injection script works"
 else
     echo "❌ Environment injection script failed"
