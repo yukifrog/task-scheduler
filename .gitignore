@@ -41,3 +41,12 @@ yarn-error.log*
 next-env.d.ts
 
 /src/generated/prisma
+
+# Performance monitoring reports
+/reports/ci-performance/*.json
+/reports/ci-performance/*.html
+
+# E2E testing
+/coverage
+/test-results
+/playwright-report

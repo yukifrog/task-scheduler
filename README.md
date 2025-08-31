@@ -97,8 +97,23 @@ This project implements comprehensive GitHub Actions caching to significantly re
 
 See [Caching Strategy](.github/CACHING_STRATEGY.md) for detailed documentation.
 
+### Performance Monitoring
+Real-time CI performance monitoring and metrics dashboard:
+- **Dashboard**: Visit `/ci-performance` to view current metrics
+- **Automated Monitoring**: Runs every 6 hours with alerting
+- **Performance Reports**: Comprehensive HTML reports with charts
+- **Alerting**: Automatic issue creation for performance degradation
+
+See [CI Performance Monitoring](.github/CI_PERFORMANCE_MONITORING.md) for complete documentation.
+
 ### Testing Cache Performance
 ```bash
 # Trigger cache test workflow manually
 gh workflow run test-cache.yml
+
+# Monitor CI performance
+npm run ci:monitor
+
+# Generate performance report
+npm run ci:report
 ```
