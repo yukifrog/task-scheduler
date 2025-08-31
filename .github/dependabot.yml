@@ -1,0 +1,55 @@
+version: 2
+updates:
+  # npm dependencies - Phase 1
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    target-branch: "develop"
+    reviewers:
+      - "yukifrog"
+    assignees:
+      - "yukifrog"
+    commit-message:
+      prefix: "deps"
+      include: "scope"
+    groups:
+      # Critical production dependencies
+      critical-dependencies:
+        patterns:
+          - "next"
+          - "react*"
+          - "prisma"
+          - "@prisma/*"
+          - "next-auth"
+          - "@auth/*"
+        update-types:
+          - "minor"
+          - "patch"
+      
+      # Standard production dependencies  
+      standard-dependencies:
+        patterns:
+          - "chart.js"
+          - "@types/*"
+          - "nodemailer"
+        update-types:
+          - "minor"
+          - "patch"
+          
+      # Development dependencies
+      development-dependencies:
+        patterns:
+          - "eslint*"
+          - "prettier"
+          - "@playwright/*"
+          - "typescript"
+          - "jest*"
+          - "@testing-library/*"
+          - "tailwindcss"
+          - "@tailwindcss/*"
+        update-types:
+          - "minor"
+          - "patch"
