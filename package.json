@@ -13,7 +13,9 @@
     "test:report": "playwright show-report",
     "test:unit": "jest",
     "test:unit:watch": "jest --watch",
-    "test:unit:coverage": "jest --coverage"
+    "test:unit:coverage": "jest --coverage",
+    "test:validate": "node scripts/validate-tests.js",
+    "test:health": "node scripts/health-check.js"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.10.0",
