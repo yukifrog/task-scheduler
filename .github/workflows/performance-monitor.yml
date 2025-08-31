@@ -1,0 +1,147 @@
+name: CI Performance Monitor
+
+on:
+  schedule:
+    # Run every 6 hours
+    - cron: '0 */6 * * *'
+  workflow_dispatch: # Manual trigger
+    inputs:
+      verbose:
+        description: 'Enable verbose output'
+        required: false
+        default: 'false'
+        type: boolean
+
+jobs:
+  performance-analysis:
+    name: CI Performance Analysis
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Run CI Performance Analysis
+        run: |
+          echo "🚀 Running CI Performance Analysis"
+          node scripts/ci-performance-monitor.js
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload Performance Reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-performance-report-${{ github.run_number }}
+          path: reports/ci-performance/
+          retention-days: 30
+
+      - name: Comment on Performance Issues
+        if: ${{ always() }}
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            
+            try {
+              const summaryPath = path.join('reports', 'ci-performance', 'latest-summary.json');
+              if (fs.existsSync(summaryPath)) {
+                const summary = JSON.parse(fs.readFileSync(summaryPath, 'utf8'));
+                
+                // Check for performance alerts
+                if (summary.alerts && summary.alerts.length > 0) {
+                  const alertMessages = summary.alerts.map(alert => 
+                    `- **[${alert.severity.toUpperCase()}]** ${alert.message}`
+                  ).join('\n');
+                  
+                  const issueBody = `## 🚨 CI Performance Alert
+                  
+Performance monitoring has detected issues with our CI pipeline:
+
+${alertMessages}
+
+**Current Metrics:**
+- Average Duration: ${summary.avgDurationMinutes} minutes
+- Cache Hit Rate: ${summary.avgCacheHitRate}%
+- Performance Trend: ${summary.trend}
+
+**Baseline Comparison:**
+- Target: 1.5-2.5 minutes (${summary.baseline.expectedImprovement}% improvement)
+- Actual: ${summary.baseline.actualPerformance.replace('-', ' ')}
+
+Please investigate and address these performance issues.
+                  `;
+
+                  // Create an issue if there are high or critical severity alerts
+                  const criticalAlerts = summary.alerts.filter(a => 
+                    a.severity === 'high' || a.severity === 'critical'
+                  );
+                  
+                  if (criticalAlerts.length > 0) {
+                    await github.rest.issues.create({
+                      owner: context.repo.owner,
+                      repo: context.repo.repo,
+                      title: `CI Performance Alert - ${new Date().toISOString().split('T')[0]}`,
+                      body: issueBody,
+                      labels: ['performance', 'ci', 'alert']
+                    });
+                    
+                    console.log('Created performance alert issue due to critical alerts');
+                  } else {
+                    console.log('Performance alerts detected but not critical enough for issue creation');
+                  }
+                }
+                
+                // Log summary for workflow output
+                console.log('📊 Performance Summary:');
+                console.log(`- Duration: ${summary.avgDurationMinutes} min (target: 1.5-2.5 min)`);
+                console.log(`- Cache Hit Rate: ${summary.avgCacheHitRate}% (target: >85%)`);
+                console.log(`- Trend: ${summary.trend}`);
+                console.log(`- Optimal Runs: ${summary.optimalRate}%`);
+                
+              } else {
+                console.log('No performance summary found');
+              }
+            } catch (error) {
+              console.log('Error processing performance data:', error.message);
+            }
+
+  generate-report:
+    name: Generate Performance Report
+    runs-on: ubuntu-latest
+    needs: performance-analysis
+    if: always()
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Download Performance Data
+        uses: actions/download-artifact@v4
+        with:
+          name: ci-performance-report-${{ github.run_number }}
+          path: reports/ci-performance/
+
+      - name: Generate Performance Report
+        run: |
+          echo "📈 Generating Performance Report"
+          node scripts/generate-performance-report.js
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload Generated Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: performance-report-html-${{ github.run_number }}
+          path: reports/ci-performance/report.html
+          retention-days: 90

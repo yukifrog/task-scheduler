@@ -195,6 +195,12 @@ export function TaskDashboard() {
           >
             ルーティン管理
           </a>
+          <Link
+            href="/ci-performance"
+            className="px-4 py-2 rounded-md text-gray-600 hover:bg-gray-100"
+          >
+            CI監視
+          </Link>
         </div>
       </div>
 

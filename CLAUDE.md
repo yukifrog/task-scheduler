@@ -115,6 +115,15 @@ source ./scripts/inject-ci-env.sh
 
 # ワークフロー修正ソリューション検証
 ./scripts/verify-workflow-fix.sh
+
+# CI パフォーマンス監視
+npm run ci:monitor
+
+# CI パフォーマンス監視（モックデータ）
+npm run ci:monitor:mock
+
+# CI パフォーマンス レポート生成
+npm run ci:report
 ```
 ```bash
 # MCP接続確認

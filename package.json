@@ -15,7 +15,10 @@
     "test:unit:watch": "jest --watch",
     "test:unit:coverage": "jest --coverage",
     "test:validate": "node scripts/validate-tests.js",
-    "test:health": "node scripts/health-check.js"
+    "test:health": "node scripts/health-check.js",
+    "ci:monitor": "node scripts/ci-performance-monitor.js",
+    "ci:monitor:mock": "node scripts/ci-performance-monitor.js --mock",
+    "ci:report": "node scripts/generate-performance-report.js"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.10.0",
