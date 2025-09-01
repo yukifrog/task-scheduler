@@ -1,0 +1,217 @@
+name: Daily Security Audit
+
+on:
+  schedule:
+    # Run daily at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch: # Allow manual trigger for testing
+    inputs:
+      audit_level:
+        description: 'npm audit level (low, moderate, high, critical)'
+        required: false
+        default: 'moderate'
+        type: choice
+        options:
+          - low
+          - moderate
+          - high
+          - critical
+
+env:
+  # Environment variables consistent with main CI
+  PRISMA_DISABLE_TELEMETRY: true
+  NEXT_TELEMETRY_DISABLED: 1
+  CHECKPOINT_DISABLE: 1
+
+jobs:
+  security-audit:
+    name: Security Audit
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # Cache npm dependencies for faster execution
+      - name: Cache npm dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.npm
+            node_modules
+          key: npm-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            npm-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+            npm-${{ runner.os }}-
+
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit
+
+      # Create directory for audit reports
+      - name: Create audit reports directory
+        run: mkdir -p reports/security-audit
+
+      - name: Run npm audit (JSON output)
+        id: audit_json
+        run: |
+          echo "Running npm audit with JSON output..."
+          npm audit --audit-level ${{ github.event.inputs.audit_level || 'moderate' }} --json > reports/security-audit/audit-report.json
+          echo "json_audit_exit_code=$?" >> $GITHUB_OUTPUT
+        continue-on-error: true
+
+      - name: Run npm audit (human readable)
+        id: audit_readable
+        run: |
+          echo "Running npm audit for human readable output..."
+          npm audit --audit-level ${{ github.event.inputs.audit_level || 'moderate' }} > reports/security-audit/audit-report.txt 2>&1
+          echo "readable_audit_exit_code=$?" >> $GITHUB_OUTPUT
+        continue-on-error: true
+
+      - name: Parse audit results
+        id: parse_results
+        run: |
+          # Parse the JSON audit report to extract vulnerability information
+          if [ -f "reports/security-audit/audit-report.json" ]; then
+            # Check if vulnerabilities exist in the JSON
+            VULN_COUNT=$(node -p "
+              try {
+                const report = JSON.parse(require('fs').readFileSync('reports/security-audit/audit-report.json', 'utf8'));
+                const vulns = report.vulnerabilities || {};
+                const criticalCount = Object.values(vulns).filter(v => v.severity === 'critical').length;
+                const highCount = Object.values(vulns).filter(v => v.severity === 'high').length;
+                const moderateCount = Object.values(vulns).filter(v => v.severity === 'moderate').length;
+                const lowCount = Object.values(vulns).filter(v => v.severity === 'low').length;
+                console.log(\`Critical: \${criticalCount}, High: \${highCount}, Moderate: \${moderateCount}, Low: \${lowCount}\`);
+                JSON.stringify({critical: criticalCount, high: highCount, moderate: moderateCount, low: lowCount, total: criticalCount + highCount + moderateCount + lowCount});
+              } catch (e) {
+                console.log('Error parsing audit report:', e.message);
+                JSON.stringify({critical: 0, high: 0, moderate: 0, low: 0, total: 0, error: e.message});
+              }
+            " 2>/dev/null || echo '{"critical": 0, "high": 0, "moderate": 0, "low": 0, "total": 0, "error": "Failed to parse"}')
+            
+            echo "vulnerability_counts=$VULN_COUNT" >> $GITHUB_OUTPUT
+            
+            # Extract critical and high vulnerability counts for decision making
+            CRITICAL_COUNT=$(echo $VULN_COUNT | node -p "JSON.parse(require('fs').readFileSync('/dev/stdin', 'utf8')).critical")
+            HIGH_COUNT=$(echo $VULN_COUNT | node -p "JSON.parse(require('fs').readFileSync('/dev/stdin', 'utf8')).high")
+            
+            echo "critical_count=$CRITICAL_COUNT" >> $GITHUB_OUTPUT
+            echo "high_count=$HIGH_COUNT" >> $GITHUB_OUTPUT
+            
+            # Determine if we should fail the workflow
+            if [ "$CRITICAL_COUNT" -gt 0 ] || [ "$HIGH_COUNT" -gt 0 ]; then
+              echo "should_fail=true" >> $GITHUB_OUTPUT
+              echo "❌ Found $CRITICAL_COUNT critical and $HIGH_COUNT high severity vulnerabilities"
+            else
+              echo "should_fail=false" >> $GITHUB_OUTPUT
+              echo "✅ No critical or high severity vulnerabilities found"
+            fi
+          else
+            echo "should_fail=false" >> $GITHUB_OUTPUT
+            echo "⚠️ No audit report found"
+          fi
+
+      - name: Generate audit summary
+        run: |
+          # Create a summary report
+          echo "# Security Audit Summary - $(date)" > reports/security-audit/summary.md
+          echo "" >> reports/security-audit/summary.md
+          echo "**Audit Level:** ${{ github.event.inputs.audit_level || 'moderate' }}" >> reports/security-audit/summary.md
+          echo "**Run Date:** $(date -u)" >> reports/security-audit/summary.md
+          echo "**Repository:** ${{ github.repository }}" >> reports/security-audit/summary.md
+          echo "**Commit SHA:** ${{ github.sha }}" >> reports/security-audit/summary.md
+          echo "" >> reports/security-audit/summary.md
+          
+          if [ "${{ steps.parse_results.outputs.vulnerability_counts }}" != "" ]; then
+            echo "**Vulnerability Counts:**" >> reports/security-audit/summary.md
+            echo "${{ steps.parse_results.outputs.vulnerability_counts }}" | node -p "
+              const counts = JSON.parse(require('fs').readFileSync('/dev/stdin', 'utf8'));
+              if (counts.error) {
+                \`- Error: \${counts.error}\`;
+              } else {
+                \`- Critical: \${counts.critical}\\n- High: \${counts.high}\\n- Moderate: \${counts.moderate}\\n- Low: \${counts.low}\\n- **Total: \${counts.total}**\`;
+              }
+            " >> reports/security-audit/summary.md
+          fi
+          
+          echo "" >> reports/security-audit/summary.md
+          echo "**Exit Codes:**" >> reports/security-audit/summary.md
+          echo "- JSON Audit: ${{ steps.audit_json.outputs.json_audit_exit_code }}" >> reports/security-audit/summary.md
+          echo "- Readable Audit: ${{ steps.audit_readable.outputs.readable_audit_exit_code }}" >> reports/security-audit/summary.md
+
+      - name: Upload audit reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: security-audit-report-${{ github.run_number }}
+          path: reports/security-audit/
+          retention-days: 30
+
+      - name: Create issue for critical vulnerabilities
+        if: steps.parse_results.outputs.should_fail == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const counts = JSON.parse('${{ steps.parse_results.outputs.vulnerability_counts }}');
+            
+            const issueBody = `## 🚨 Critical Security Vulnerabilities Detected
+
+The daily security audit has detected critical or high severity vulnerabilities in our dependencies.
+
+**Vulnerability Summary:**
+- **Critical:** ${counts.critical}
+- **High:** ${counts.high}
+- **Moderate:** ${counts.moderate}
+- **Low:** ${counts.low}
+- **Total:** ${counts.total}
+
+**Audit Details:**
+- **Audit Level:** ${{ github.event.inputs.audit_level || 'moderate' }}
+- **Run Date:** ${new Date().toISOString()}
+- **Commit SHA:** ${{ github.sha }}
+- **Workflow Run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+**Next Steps:**
+1. Review the detailed audit report in the workflow artifacts
+2. Update vulnerable dependencies using \`npm audit fix\`
+3. For vulnerabilities that cannot be automatically fixed, consider:
+   - Updating to newer versions manually
+   - Finding alternative packages
+   - Implementing workarounds if updates are not available
+
+**Audit Reports:**
+The detailed audit reports are available in the workflow artifacts: [security-audit-report-${{ github.run_number }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+
+Please address these vulnerabilities as soon as possible to maintain the security of our application.
+            `;
+
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `🚨 Security Alert: ${counts.critical + counts.high} Critical/High Vulnerabilities Detected - ${new Date().toISOString().split('T')[0]}`,
+              body: issueBody,
+              labels: ['security', 'vulnerability', 'critical', 'audit']
+            });
+
+      - name: Fail workflow if critical vulnerabilities found
+        if: steps.parse_results.outputs.should_fail == 'true'
+        run: |
+          echo "❌ SECURITY AUDIT FAILED"
+          echo "Found ${{ steps.parse_results.outputs.critical_count }} critical and ${{ steps.parse_results.outputs.high_count }} high severity vulnerabilities"
+          echo "This workflow will fail to ensure these security issues are addressed."
+          echo ""
+          echo "Please review the audit report and update vulnerable dependencies."
+          echo "Use 'npm audit fix' to automatically fix vulnerabilities where possible."
+          exit 1
+
+      - name: Success notification
+        if: steps.parse_results.outputs.should_fail == 'false'
+        run: |
+          echo "✅ SECURITY AUDIT PASSED"
+          echo "No critical or high severity vulnerabilities detected."
+          echo "Audit completed successfully with level: ${{ github.event.inputs.audit_level || 'moderate' }}"

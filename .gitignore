@@ -46,6 +46,11 @@ next-env.d.ts
 /reports/ci-performance/*.json
 /reports/ci-performance/*.html
 
+# Security audit reports  
+/reports/security-audit/*.json
+/reports/security-audit/*.txt
+/reports/security-audit/*.md
+
 # E2E testing
 /coverage
 /test-results
