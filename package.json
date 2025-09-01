@@ -21,6 +21,9 @@
     "ci:report": "node scripts/generate-performance-report.js",
     "cache:monitor": "./scripts/monitor-cache-usage.sh",
     "cache:report": "./scripts/monitor-cache-usage.sh > cache-report.txt && cat cache-report.txt",
+    "pr:analyze": "node scripts/pr-analysis.js",
+    "pr:analyze:json": "node scripts/pr-analysis.js HEAD~1 --json",
+    "pr:analyze:comment": "node scripts/pr-analysis.js HEAD~1 --comment",
     "postinstall": "prisma generate --no-engine",
     "prisma:generate": "prisma generate --no-engine"
   },
