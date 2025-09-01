@@ -11,6 +11,16 @@ env:
   DATABASE_URL: postgresql://test_user:test_password@localhost:5432/test_db
   NEXTAUTH_SECRET: test_secret_key_for_ci
   NEXTAUTH_URL: http://localhost:3001
+  
+  # Prisma完全無効化設定
+  PRISMA_DISABLE_TELEMETRY: true
+  PRISMA_SKIP_POSTINSTALL_GENERATE: true
+  PRISMA_QUERY_ENGINE_BINARY_CACHE_DIR: ./prisma-cache
+  CHECKPOINT_DISABLE: 1
+  CHECKPOINT_TELEMETRY: 0
+  
+  # Next.js telemetry disable
+  NEXT_TELEMETRY_DISABLED: 1
 
 jobs:
   test:
@@ -56,19 +66,26 @@ jobs:
       - name: Install dependencies
         run: npm ci --prefer-offline --no-audit
 
-      # Cache Prisma client and generated files
-      - name: Cache Prisma client
+      # Cache Prisma binaries and client 
+      - name: Cache Prisma binaries
         uses: actions/cache@v4
         with:
           path: |
+            ./prisma-cache
             node_modules/.prisma
             node_modules/@prisma/client
-          key: prisma-${{ runner.os }}-${{ hashFiles('prisma/schema.prisma') }}-${{ hashFiles('**/package-lock.json') }}
+          key: prisma-binaries-${{ runner.os }}-${{ hashFiles('prisma/schema.prisma') }}
           restore-keys: |
-            prisma-${{ runner.os }}-${{ hashFiles('prisma/schema.prisma') }}-
+            prisma-binaries-${{ runner.os }}-
 
-      - name: Generate Prisma client
-        run: npx prisma generate
+      - name: Generate Prisma client (offline)
+        run: |
+          export PRISMA_DISABLE_TELEMETRY=true
+          export CHECKPOINT_DISABLE=1
+          export CHECKPOINT_TELEMETRY=0
+          npx prisma generate --no-engine
+        env:
+          DATABASE_URL: ${{ env.DATABASE_URL }}
 
       - name: Run database migrations
         run: npx prisma migrate deploy
