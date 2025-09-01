@@ -28,6 +28,13 @@ const eslintConfig = [
       "@typescript-eslint/prefer-ts-expect-error": "off",
     },
   },
+  {
+    files: ["scripts/**/*.js"],
+    rules: {
+      // Allow CommonJS require in Node.js scripts
+      "@typescript-eslint/no-require-imports": "off",
+    },
+  },
 ];
 
 export default eslintConfig;

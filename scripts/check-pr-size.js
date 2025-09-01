@@ -6,7 +6,6 @@
  */
 
 const { execSync } = require('child_process');
-const path = require('path');
 
 // Size thresholds based on pr-guidelines.md
 const THRESHOLDS = {
@@ -73,7 +72,7 @@ function categorizeSize(total) {
   }
 }
 
-function printRecommendations(category, total) {
+function printRecommendations(category) {
   console.log('\n📋 Recommendations:');
   
   switch (category) {
@@ -109,7 +108,7 @@ function main() {
   console.log('===================');
   
   const stats = getPRStats();
-  const { category, icon, color } = categorizeSize(stats.total);
+  const { category, icon } = categorizeSize(stats.total);
   
   console.log(`\n📊 Current PR Statistics:`);
   console.log(`   Files changed: ${stats.files}`);
@@ -120,7 +119,7 @@ function main() {
   console.log(`\n${icon} Size Category: ${category}`);
   console.log(`   Threshold: ${stats.total} / ${THRESHOLDS.LARGE} lines`);
   
-  printRecommendations(category, stats.total);
+  printRecommendations(category);
   
   // Exit with appropriate code
   if (stats.total > THRESHOLDS.LARGE) {

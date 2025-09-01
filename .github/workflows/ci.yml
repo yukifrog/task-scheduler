@@ -21,6 +21,15 @@ env:
   
   # Next.js telemetry disable
   NEXT_TELEMETRY_DISABLED: 1
+  
+  # Firewall restriction handling - Disable external resource access
+  NEXT_FONT_GOOGLE_DISABLED: 1
+  NEXT_OPTIMIZE_FONTS: false
+  
+  # Performance and security optimizations for CI
+  NO_COLOR: 1
+  NPM_CONFIG_AUDIT: false
+  NPM_CONFIG_PREFER_OFFLINE: true
 
 jobs:
   test:
@@ -45,6 +54,17 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Pre-configure for firewall restrictions
+        run: |
+          echo "🔒 Configuring environment for firewall restrictions..."
+          # Disable external connectivity tests
+          export NO_UPDATE_NOTIFIER=1
+          export CHECKPOINT_DISABLE=1
+          export PRISMA_DISABLE_TELEMETRY=true
+          export NEXT_TELEMETRY_DISABLED=1
+          export NEXT_FONT_GOOGLE_DISABLED=1
+          echo "✅ Firewall restriction configuration complete"
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -157,6 +177,17 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Pre-configure for firewall restrictions
+        run: |
+          echo "🔒 Configuring environment for firewall restrictions..."
+          # Disable external connectivity tests
+          export NO_UPDATE_NOTIFIER=1
+          export CHECKPOINT_DISABLE=1
+          export PRISMA_DISABLE_TELEMETRY=true
+          export NEXT_TELEMETRY_DISABLED=1
+          export NEXT_FONT_GOOGLE_DISABLED=1
+          echo "✅ Firewall restriction configuration complete"
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
