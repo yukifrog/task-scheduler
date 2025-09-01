@@ -1,3 +1,7 @@
+# Automated dependency management configuration
+# Security vulnerabilities: Immediate PR creation (overrides schedule)
+# Regular updates: Weekly on Mondays 09:00 JST
+# Target: develop branch for staged testing
 version: 2
 updates:
   # npm dependencies - Phase 1
@@ -16,7 +20,7 @@ updates:
       prefix: "deps"
       include: "scope"
     groups:
-      # Critical production dependencies
+      # Critical production dependencies (security updates: immediate)
       critical-dependencies:
         patterns:
           - "next"
@@ -29,7 +33,7 @@ updates:
           - "minor"
           - "patch"
       
-      # Standard production dependencies  
+      # Standard production dependencies (security updates: immediate)
       standard-dependencies:
         patterns:
           - "chart.js"
@@ -39,7 +43,7 @@ updates:
           - "minor"
           - "patch"
           
-      # Development dependencies
+      # Development dependencies (security updates: immediate)
       development-dependencies:
         patterns:
           - "eslint*"
@@ -50,6 +54,42 @@ updates:
           - "@testing-library/*"
           - "tailwindcss"
           - "@tailwindcss/*"
+        update-types:
+          - "minor"
+          - "patch"
+
+  # GitHub Actions - Phase 2
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+      day: "monday"
+      time: "10:00"
+    target-branch: "develop"
+    reviewers:
+      - "yukifrog"
+    assignees:
+      - "yukifrog"
+    commit-message:
+      prefix: "ci"
+      include: "scope"
+    groups:
+      # Action updates grouped by category
+      setup-actions:
+        patterns:
+          - "actions/checkout*"
+          - "actions/setup-node*"
+          - "actions/cache*"
+        update-types:
+          - "minor"
+          - "patch"
+          
+      test-actions:
+        patterns:
+          - "github/codeql-action*"
+          - "actions/upload-artifact*"
+          - "actions/download-artifact*"
+          - "actions/github-script*"
         update-types:
           - "minor"
           - "patch"

@@ -64,6 +64,8 @@ validate_environment() {
         "DATABASE_URL"
         "NEXTAUTH_SECRET"
         "NEXTAUTH_URL"
+        "NEXT_FONT_GOOGLE_DISABLED"
+        "NO_UPDATE_NOTIFIER"
     )
     
     missing_vars=()
