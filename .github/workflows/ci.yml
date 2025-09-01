@@ -168,7 +168,10 @@ jobs:
         uses: github/codeql-action/init@v3
         with:
           languages: typescript, javascript
+          config-file: ./.github/codeql/codeql-config.yml
 
       - name: Run CodeQL Analysis
         uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:typescript"
 
