@@ -189,3 +189,61 @@ jobs:
       - name: Run CodeQL Analysis
         uses: github/codeql-action/analyze@v3
 
+  code-quality:
+    name: Code Quality Check
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # Reuse npm cache from test job
+      - name: Cache npm dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.npm
+            node_modules
+          key: npm-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            npm-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+            npm-${{ runner.os }}-
+
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit
+
+      # Cache Prisma binaries (reuse from test job)
+      - name: Cache Prisma binaries
+        uses: actions/cache@v4
+        with:
+          path: |
+            ./prisma-cache
+            node_modules/.prisma
+            node_modules/@prisma/client
+          key: prisma-binaries-${{ runner.os }}-${{ hashFiles('prisma/schema.prisma') }}
+          restore-keys: |
+            prisma-binaries-${{ runner.os }}-
+
+      - name: Generate Prisma client (offline)
+        run: |
+          export PRISMA_DISABLE_TELEMETRY=true
+          export CHECKPOINT_DISABLE=1
+          export CHECKPOINT_TELEMETRY=0
+          npx prisma generate --no-engine
+        env:
+          DATABASE_URL: ${{ env.DATABASE_URL }}
+
+      - name: Security Pattern Detection
+        run: ./scripts/security-check.sh
+
+      - name: TypeScript Strict Mode Check
+        run: ./scripts/typescript-check.sh
+
+      - name: Test Coverage Validation
+        run: ./scripts/coverage-check.sh
+

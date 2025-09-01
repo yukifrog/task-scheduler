@@ -22,6 +22,10 @@
     "security:test": "node scripts/test-security-audit.js",
     "cache:monitor": "./scripts/monitor-cache-usage.sh",
     "cache:report": "./scripts/monitor-cache-usage.sh > cache-report.txt && cat cache-report.txt",
+    "quality:security": "./scripts/security-check.sh",
+    "quality:typescript": "./scripts/typescript-check.sh", 
+    "quality:coverage": "./scripts/coverage-check.sh",
+    "quality:all": "./scripts/security-check.sh && ./scripts/typescript-check.sh && ./scripts/coverage-check.sh",
     "postinstall": "prisma generate --no-engine",
     "prisma:generate": "prisma generate --no-engine"
   },

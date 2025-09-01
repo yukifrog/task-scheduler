@@ -81,6 +81,29 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 - `npm run test:report`: Shows the last Playwright test report.
 - `npm run security:test`: Tests the security audit workflow logic and validation.
 
+## 🔒 Code Quality Checks
+
+Automated code quality validation ensures security and maintainability:
+
+### Quality Check Scripts
+- `npm run quality:security`: Scan for hardcoded secrets, passwords, API keys
+- `npm run quality:typescript`: Validate TypeScript strict mode compliance  
+- `npm run quality:coverage`: Check test coverage meets 80% threshold
+- `npm run quality:all`: Run all quality checks sequentially
+
+### Automated PR Validation
+Every pull request automatically runs:
+- **Security Pattern Detection**: Prevents hardcoded credentials from being committed
+- **TypeScript Strict Mode**: Ensures type safety and code quality
+- **Test Coverage Validation**: Maintains minimum 80% test coverage requirement
+
+### GitHub Actions Integration
+Quality checks run in the `code-quality` job and provide:
+- Detailed error annotations on failing lines
+- Security warnings for potential vulnerabilities  
+- Coverage recommendations for improving test coverage
+- Integration with existing CI cache strategies
+
 ## ⚡ CI/CD Optimization
 
 This project implements comprehensive GitHub Actions caching to significantly reduce CI pipeline execution time:
