@@ -119,6 +119,37 @@ npm run ci:monitor
 npm run ci:report
 ```
 
+## 🔍 PR Analysis & Review Support
+
+Automated pull request analysis with intelligent review insights:
+
+### Features
+- **Complexity Analysis**: Automatic complexity scoring based on file types and changes
+- **Review Time Estimation**: Intelligent time estimates for code review
+- **Change Categorization**: Analysis by file type and project areas
+- **Smart Suggestions**: Context-aware review focus recommendations
+
+### Usage
+```bash
+# Analyze current branch changes
+npm run pr:analyze
+
+# Generate GitHub comment format
+npm run pr:analyze:comment
+
+# JSON output for automation
+npm run pr:analyze:json
+```
+
+### Automatic Integration
+The PR analysis system automatically:
+- ✅ Analyzes all pull requests on creation/update
+- 📊 Posts detailed analysis comments
+- 🏷️ Adds complexity and area labels
+- ⏱️ Estimates review time requirements
+
+See [PR Analysis System Documentation](docs/PR_ANALYSIS_SYSTEM.md) for complete configuration and customization options.
+
 ## 🔒 Security
 
 ### Daily Security Audit

@@ -5,6 +5,7 @@
  * Checks if the current PR size is within recommended guidelines
  */
 
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const { execSync } = require('child_process');
 
 // Size thresholds based on pr-guidelines.md

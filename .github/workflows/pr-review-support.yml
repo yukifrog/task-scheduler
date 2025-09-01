@@ -1,0 +1,190 @@
+name: PR Review Support
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [main, develop]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  pr-analysis:
+    name: PR Analysis and Review Support
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          # Fetch full history to allow git diff analysis
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: |
+          npm ci --prefer-offline --no-audit
+          # Only install gh CLI if not already available
+          if ! command -v gh &> /dev/null; then
+            sudo apt-get update && sudo apt-get install -y gh
+          fi
+
+      - name: Configure git for analysis
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Analyze PR changes
+        id: analysis
+        run: |
+          echo "🔍 Analyzing PR changes..."
+          
+          # Get the base branch for comparison
+          BASE_BRANCH="${{ github.event.pull_request.base.ref }}"
+          HEAD_SHA="${{ github.event.pull_request.head.sha }}"
+          
+          echo "Comparing against base branch: $BASE_BRANCH"
+          echo "HEAD SHA: $HEAD_SHA"
+          
+          # Ensure we have the base branch
+          git fetch origin $BASE_BRANCH:$BASE_BRANCH || true
+          
+          # Run the analysis and capture results
+          ANALYSIS_OUTPUT=$(node scripts/pr-analysis.js $BASE_BRANCH --comment 2>&1 || echo "Analysis failed")
+          
+          # Save analysis to file for the comment step
+          echo "$ANALYSIS_OUTPUT" > pr-analysis-output.txt
+          
+          # Extract key metrics for step outputs
+          COMPLEXITY=$(node scripts/pr-analysis.js $BASE_BRANCH --json | jq -r '.stats.totalComplexity // 0' 2>/dev/null || echo "0")
+          REVIEW_TIME=$(node scripts/pr-analysis.js $BASE_BRANCH --json | jq -r '.stats.totalReviewTime // 0' 2>/dev/null || echo "0")
+          FILES_CHANGED=$(node scripts/pr-analysis.js $BASE_BRANCH --json | jq -r '.stats.totalFiles // 0' 2>/dev/null || echo "0")
+          
+          echo "complexity=$COMPLEXITY" >> $GITHUB_OUTPUT
+          echo "review_time=$REVIEW_TIME" >> $GITHUB_OUTPUT
+          echo "files_changed=$FILES_CHANGED" >> $GITHUB_OUTPUT
+          
+          echo "Analysis completed:"
+          echo "  Files changed: $FILES_CHANGED"
+          echo "  Complexity score: $COMPLEXITY"
+          echo "  Review time: $REVIEW_TIME minutes"
+
+      - name: Check for src/ changes
+        id: src_changes
+        run: |
+          BASE_BRANCH="${{ github.event.pull_request.base.ref }}"
+          
+          # Check if there are changes in src/ directory
+          SRC_CHANGES=$(git diff --name-only origin/$BASE_BRANCH...HEAD | grep "^src/" | wc -l)
+          echo "src_changes=$SRC_CHANGES" >> $GITHUB_OUTPUT
+          echo "📁 Source code changes detected: $SRC_CHANGES files"
+
+      - name: Generate review insights
+        id: insights
+        run: |
+          COMPLEXITY="${{ steps.analysis.outputs.complexity }}"
+          REVIEW_TIME="${{ steps.analysis.outputs.review_time }}"
+          FILES_CHANGED="${{ steps.analysis.outputs.files_changed }}"
+          SRC_CHANGES="${{ steps.src_changes.outputs.src_changes }}"
+          
+          # Generate additional insights based on metrics
+          INSIGHTS=""
+          
+          if [ "$COMPLEXITY" -gt 300 ]; then
+            INSIGHTS="$INSIGHTS\n⚠️ **High complexity detected** - Consider breaking this PR into smaller changes."
+          fi
+          
+          if [ "$REVIEW_TIME" -gt 120 ]; then
+            INSIGHTS="$INSIGHTS\n⏰ **Long review time estimated** - This PR may benefit from additional documentation."
+          fi
+          
+          if [ "$SRC_CHANGES" -gt 10 ]; then
+            INSIGHTS="$INSIGHTS\n📝 **Many source files changed** - Ensure proper testing coverage."
+          fi
+          
+          if [ "$FILES_CHANGED" -gt 20 ]; then
+            INSIGHTS="$INSIGHTS\n📊 **Large changeset** - Consider splitting into multiple focused PRs."
+          fi
+          
+          # Save insights for comment
+          echo -e "$INSIGHTS" > additional-insights.txt
+
+      - name: Post analysis comment
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Check if analysis output exists and is not empty
+          if [ ! -f "pr-analysis-output.txt" ] || [ ! -s "pr-analysis-output.txt" ]; then
+            echo "⚠️ No analysis output found, creating fallback comment"
+            echo "## 🤖 Automated PR Analysis
+
+❌ **Analysis Error**: Unable to analyze changes automatically.
+
+Please ensure the PR has valid git changes and try again." > pr-analysis-output.txt
+          fi
+          
+          # Add additional insights if they exist
+          if [ -f "additional-insights.txt" ] && [ -s "additional-insights.txt" ]; then
+            echo "" >> pr-analysis-output.txt
+            echo "## 🎯 Additional Insights" >> pr-analysis-output.txt
+            cat additional-insights.txt >> pr-analysis-output.txt
+          fi
+          
+          # Add helpful review checklist
+          echo "" >> pr-analysis-output.txt
+          echo "## ✅ Review Checklist" >> pr-analysis-output.txt
+          echo "- [ ] Code follows project coding standards" >> pr-analysis-output.txt
+          echo "- [ ] Changes are well-documented" >> pr-analysis-output.txt
+          echo "- [ ] Tests cover new functionality" >> pr-analysis-output.txt
+          echo "- [ ] No breaking changes or properly documented" >> pr-analysis-output.txt
+          echo "- [ ] Performance impact considered" >> pr-analysis-output.txt
+          
+          # Post the comment using GitHub CLI
+          gh pr comment ${{ github.event.pull_request.number }} --body-file pr-analysis-output.txt
+          
+          echo "✅ Analysis comment posted to PR #${{ github.event.pull_request.number }}"
+
+      - name: Add analysis labels
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          COMPLEXITY="${{ steps.analysis.outputs.complexity }}"
+          SRC_CHANGES="${{ steps.src_changes.outputs.src_changes }}"
+          
+          # Determine appropriate labels based on analysis
+          LABELS=""
+          
+          if [ "$COMPLEXITY" -gt 300 ]; then
+            LABELS="$LABELS complexity:high"
+          elif [ "$COMPLEXITY" -gt 150 ]; then
+            LABELS="$LABELS complexity:medium"
+          else
+            LABELS="$LABELS complexity:low"
+          fi
+          
+          if [ "$SRC_CHANGES" -gt 0 ]; then
+            LABELS="$LABELS affects:source-code"
+          fi
+          
+          # Apply labels if any were determined
+          if [ ! -z "$LABELS" ]; then
+            echo "🏷️ Adding labels: $LABELS"
+            for label in $LABELS; do
+              gh pr edit ${{ github.event.pull_request.number }} --add-label "$label" || echo "Label '$label' may not exist, skipping"
+            done
+          fi
+
+      - name: Upload analysis artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: pr-analysis-${{ github.event.pull_request.number }}
+          path: |
+            pr-analysis-output.txt
+            additional-insights.txt
+          retention-days: 30
