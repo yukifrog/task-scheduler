@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+/* eslint-disable @typescript-eslint/no-require-imports */
+
 /**
  * Verification script for Prisma Telemetry Implementation
  * Tests the key improvements implemented:
@@ -132,7 +134,7 @@ if (fs.existsSync(ciEnvFile)) {
  */
 console.log('\\n🚀 Testing postinstall script execution...');
 
-exec('npm run postinstall', { cwd: path.join(__dirname, '..') }, (error, stdout, stderr) => {
+exec('npm run postinstall', { cwd: path.join(__dirname, '..') }, (error, stdout) => {
   if (error) {
     console.log(`  ❌ postinstall failed: ${error.message}`);
     allPassed = false;
