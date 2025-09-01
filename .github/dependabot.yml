@@ -57,3 +57,39 @@ updates:
         update-types:
           - "minor"
           - "patch"
+
+  # GitHub Actions - Phase 2
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+      day: "monday"
+      time: "10:00"
+    target-branch: "develop"
+    reviewers:
+      - "yukifrog"
+    assignees:
+      - "yukifrog"
+    commit-message:
+      prefix: "ci"
+      include: "scope"
+    groups:
+      # Action updates grouped by category
+      setup-actions:
+        patterns:
+          - "actions/checkout*"
+          - "actions/setup-node*"
+          - "actions/cache*"
+        update-types:
+          - "minor"
+          - "patch"
+          
+      test-actions:
+        patterns:
+          - "github/codeql-action*"
+          - "actions/upload-artifact*"
+          - "actions/download-artifact*"
+          - "actions/github-script*"
+        update-types:
+          - "minor"
+          - "patch"
