@@ -79,6 +79,7 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 - `npm run test:unit`: Runs Jest unit tests.
 - `npm run test:unit:coverage`: Runs Jest and generates a test coverage report.
 - `npm run test:report`: Shows the last Playwright test report.
+- `npm run security:test`: Tests the security audit workflow logic and validation.
 
 ## ⚡ CI/CD Optimization
 
@@ -148,3 +149,22 @@ The PR analysis system automatically:
 - ⏱️ Estimates review time requirements
 
 See [PR Analysis System Documentation](docs/PR_ANALYSIS_SYSTEM.md) for complete configuration and customization options.
+
+## 🔒 Security
+
+### Daily Security Audit
+Automated vulnerability scanning runs daily to ensure dependency security:
+- **Schedule**: Daily at 2 AM UTC via GitHub Actions
+- **Tool**: npm audit with moderate+ severity threshold  
+- **Alerting**: Automatic GitHub issue creation for critical/high vulnerabilities
+- **Reports**: JSON and human-readable outputs with 30-day retention
+
+```bash
+# Test security audit workflow
+npm run security:test
+
+# Manual security audit  
+npm audit --audit-level moderate
+```
+
+See [Security Audit Documentation](.github/SECURITY_AUDIT.md) for complete details.

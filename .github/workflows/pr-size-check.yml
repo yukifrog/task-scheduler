@@ -1,0 +1,103 @@
+name: PR Size Check
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  check-pr-size:
+    name: Check PR Size
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch full history for diff calculation
+
+      - name: Calculate PR size
+        id: pr-size
+        run: |
+          # Get the base branch and current branch
+          BASE_BRANCH="${{ github.event.pull_request.base.sha }}"
+          HEAD_BRANCH="${{ github.event.pull_request.head.sha }}"
+          
+          echo "🔍 Calculating PR size..."
+          echo "Base: $BASE_BRANCH"
+          echo "Head: $HEAD_BRANCH"
+          
+          # Calculate diff statistics
+          DIFF_STATS=$(git diff --stat "$BASE_BRANCH...$HEAD_BRANCH")
+          
+          # Extract total lines changed (added + deleted)
+          # Parse the summary line for insertions and deletions
+          SUMMARY_LINE=$(echo "$DIFF_STATS" | tail -n 1)
+          INSERTIONS=$(echo "$SUMMARY_LINE" | grep -o '[0-9]\+ insertion' | grep -o '[0-9]\+' || echo 0)
+          DELETIONS=$(echo "$SUMMARY_LINE" | grep -o '[0-9]\+ deletion' | grep -o '[0-9]\+' || echo 0)
+          
+          # Calculate total lines (insertions + deletions)
+          TOTAL_LINES=$((INSERTIONS + DELETIONS))
+          
+          # Handle case where no lines are found (e.g., only file renames)
+          if [ -z "$TOTAL_LINES" ] || [ "$TOTAL_LINES" = "0" ]; then
+            # Fallback: count changed lines differently if summary parsing fails
+            TOTAL_LINES=$(echo "$DIFF_STATS" | grep -v "files\? changed" | wc -l)
+            if [ "$TOTAL_LINES" -le 1 ]; then
+              TOTAL_LINES=0
+            fi
+          fi
+          
+          # Extract files changed
+          FILES_CHANGED=$(echo "$DIFF_STATS" | tail -n 1 | grep -o '[0-9]\+ files\? changed' | grep -o '[0-9]\+')
+          if [ -z "$FILES_CHANGED" ]; then
+            FILES_CHANGED=0
+          fi
+          
+          echo "📊 PR Statistics:"
+          echo "Files changed: $FILES_CHANGED"
+          echo "Total lines changed: $TOTAL_LINES"
+          
+          # Set outputs for use in subsequent steps
+          echo "total_lines=$TOTAL_LINES" >> $GITHUB_OUTPUT
+          echo "files_changed=$FILES_CHANGED" >> $GITHUB_OUTPUT
+          
+          # Show full diff stats
+          echo "📈 Detailed changes:"
+          echo "$DIFF_STATS"
+
+      - name: Check size threshold
+        run: |
+          TOTAL_LINES="${{ steps.pr-size.outputs.total_lines }}"
+          FILES_CHANGED="${{ steps.pr-size.outputs.files_changed }}"
+          THRESHOLD=500
+          
+          echo "🎯 Size check results:"
+          echo "Lines changed: $TOTAL_LINES"
+          echo "Threshold: $THRESHOLD"
+          
+          if [ "$TOTAL_LINES" -gt "$THRESHOLD" ]; then
+            echo "::warning title=Large PR Detected::This PR changes $TOTAL_LINES lines, which exceeds the recommended limit of $THRESHOLD lines. Consider splitting this PR into smaller, more focused changes."
+            
+            echo ""
+            echo "⚠️ **Large PR Warning**"
+            echo "This pull request contains $TOTAL_LINES lines of changes across $FILES_CHANGED files."
+            echo "This exceeds our recommended limit of $THRESHOLD lines per PR."
+            echo ""
+            echo "📚 **Why smaller PRs are better:**"
+            echo "- Easier and faster to review"
+            echo "- Reduced risk of introducing bugs"
+            echo "- Faster feedback and iteration cycles"
+            echo "- Better understanding of changes"
+            echo ""
+            echo "🔧 **Consider these approaches:**"
+            echo "- Split by feature or component"
+            echo "- Separate refactoring from new features"
+            echo "- Create separate PRs for tests"
+            echo "- Use feature flags for gradual rollouts"
+            echo ""
+            echo "📖 **For detailed guidance, see:** pr-guidelines.md"
+            echo ""
+            echo "If this PR cannot be split due to technical constraints, please add a detailed explanation in the PR description."
+          else
+            echo "✅ PR size is within recommended limits ($TOTAL_LINES/$THRESHOLD lines)"
+          fi
