@@ -19,6 +19,7 @@
     "ci:monitor": "node scripts/ci-performance-monitor.js",
     "ci:monitor:mock": "node scripts/ci-performance-monitor.js --mock",
     "ci:report": "node scripts/generate-performance-report.js",
+    "security:test": "node scripts/test-security-audit.js",
     "cache:monitor": "./scripts/monitor-cache-usage.sh",
     "cache:report": "./scripts/monitor-cache-usage.sh > cache-report.txt && cat cache-report.txt",
     "postinstall": "prisma generate --no-engine",
