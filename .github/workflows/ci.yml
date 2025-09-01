@@ -11,9 +11,11 @@ env:
   DATABASE_URL: postgresql://test_user:test_password@localhost:5432/test_db
   NEXTAUTH_SECRET: test_secret_key_for_ci
   NEXTAUTH_URL: http://localhost:3001
+  CI: true
   
-  # Prisma完全無効化設定
-  PRISMA_DISABLE_TELEMETRY: true
+  # Prisma telemetry disabling (issue #21 requirements)
+  SKIP_PRISMA_TELEMETRY: 1
+  PRISMA_DISABLE_TELEMETRY: 1
   PRISMA_SKIP_POSTINSTALL_GENERATE: true
   PRISMA_QUERY_ENGINE_BINARY_CACHE_DIR: ./prisma-cache
   CHECKPOINT_DISABLE: 1
