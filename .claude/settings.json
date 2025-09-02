@@ -1,0 +1,220 @@
+{
+  "env": {
+    "MAX_MCP_OUTPUT_TOKENS": "60000",
+    "BASH_DEFAULT_TIMEOUT_MS": "300000",
+    "BASH_MAX_TIMEOUT_MS": "600000"
+  },
+  "permissions": {
+    "allow": [
+      // === 1. ファイル & システム検査 (基本的な調査) ===
+      "Bash(ls -la)",
+      "Bash(pwd)",
+      "Bash(find . -name '*')",
+      "Bash(grep -r *)",
+      "Bash(cat *)",
+      "Bash(head *)",
+      "Bash(tail *)",
+      "Bash(wc -l *)",
+      "Bash(file *)",
+      "Bash(stat *)",
+      "Bash(tree -L 2)",
+      "Bash(env)",
+      "Bash(whoami)",
+      "Bash(uname -a)",
+      "Bash(df -h)",
+
+      // === 2. バージョン管理 (Gitでの状態確認) ===
+      "Bash(git status)",
+      "Bash(git diff *)",
+      "Bash(git diff --staged)",
+      "Bash(git log --oneline -n 20)",
+      "Bash(git show *)",
+      "Bash(git branch -v)",
+      "Bash(git tag)",
+      "Bash(git remote -v)",
+      "Bash(git config -l)",
+      "Bash(git blame *)",
+
+      // === 3. パッケージ管理 (依存関係の調査) ===
+      "Bash(npm list --depth=1)",
+      "Bash(npm view *)",
+      "Bash(npm audit --audit-level=moderate)",
+      "Bash(yarn list --depth=1)",
+      "Bash(pnpm list)",
+      "Bash(pip list)",
+      "Bash(pip show *)",
+      "Bash(pip check)",
+      "Bash(bundle list)",
+      "Bash(mvn dependency:tree)",
+      "Bash(gradle dependencies)",
+      "Bash(cargo tree)",
+
+      // === 4. ビルド & 静的解析 (コード品質のチェック) ===
+      "Bash(make --dry-run)",
+      "Bash(eslint --format compact *)",
+      "Bash(prettier --check *)",
+      "Bash(tsc --noEmit)",
+      
+      // === 5. コンテナ (Dockerの状態確認) ===
+      "Bash(docker ps -a)",
+      "Bash(docker images)",
+      "Bash(docker logs *)",
+      "Bash(docker inspect *)",
+      "Bash(docker volume ls)",
+      "Bash(docker network ls)",
+
+      // === 6. クラウド CLI (AWS, GCP, Azureの状態確認) ===
+      // AWS CLI (describe, list, get のみ)
+      "Bash(aws * describe-*)",
+      "Bash(aws * list-*)",
+      "Bash(aws * get-*)",
+      "Bash(aws s3 ls *)",
+      // Google Cloud CLI (list, describe のみ)
+      "Bash(gcloud * list *)",
+      "Bash(gcloud * describe *)",
+      // Azure CLI (list, show のみ)
+      "Bash(az * list *)",
+      "Bash(az * show *)",
+
+      // === 7. GitHub スキル (読み取り系) ===
+      "mcp__github__get_pull_request",
+      "mcp__github__get_pull_request_files",
+      "mcp__github__get_pull_request_status",
+      "mcp__github__get_job_logs",
+      "mcp__github__list_workflow_jobs",
+      "mcp__github__list_workflow_runs",
+      "mcp__github__get_workflow_run",
+      "mcp__github__list_pull_requests",
+      "mcp__github__list_issues",
+      "mcp__github__get_issue",
+      
+      // === GitHub スキル (必要最小限の書き込み系) ===
+      "mcp__github__create_issue",
+      "mcp__github__add_sub_issue", 
+      "mcp__github__update_issue",
+      "mcp__github__assign_copilot_to_issue",
+      
+      // === GitHub調査・検索系 ===
+      "mcp__github__search_code",
+      "mcp__github__search_issues",
+      "mcp__github__search_pull_requests",
+      "mcp__github__search_repositories",
+      "mcp__github__search_users",
+      
+      // === PR・Issue詳細情報 ===
+      "mcp__github__get_pull_request_diff",
+      "mcp__github__get_pull_request_reviews",
+      "mcp__github__get_pull_request_comments",
+      "mcp__github__get_issue_comments",
+      "mcp__github__get_commit",
+      
+      // === リポジトリ情報 ===
+      "mcp__github__list_branches",
+      "mcp__github__list_tags",
+      "mcp__github__list_commits",
+      "mcp__github__get_file_contents",
+      
+      // === ワークフロー拡張 ===
+      "mcp__github__list_workflows",
+      "mcp__github__list_workflow_run_artifacts",
+      "mcp__github__download_workflow_run_artifact",
+      
+      // === セキュリティ・品質 ===
+      "mcp__github__list_dependabot_alerts",
+      "mcp__github__list_code_scanning_alerts",
+      "mcp__github__get_dependabot_alert",
+      "mcp__github__get_code_scanning_alert",
+      "mcp__github__list_secret_scanning_alerts",
+      "mcp__github__get_secret_scanning_alert",
+      "mcp__github__list_repository_security_advisories",
+      
+      // === リリース・タグ管理 ===
+      "mcp__github__list_releases",
+      "mcp__github__get_latest_release",
+      "mcp__github__get_release_by_tag",
+      "mcp__github__get_tag",
+      
+      // === 通知・アクティビティ ===
+      "mcp__github__list_notifications",
+      "mcp__github__get_notification_details",
+      "mcp__github__mark_all_notifications_read",
+      "mcp__github__manage_notification_subscription",
+      "mcp__github__dismiss_notification",
+      
+      // === ディスカッション ===
+      "mcp__github__list_discussions",
+      "mcp__github__get_discussion",
+      "mcp__github__get_discussion_comments",
+      "mcp__github__list_discussion_categories",
+      
+      // === Gist管理 ===
+      "mcp__github__list_gists",
+      "mcp__github__create_gist",
+      "mcp__github__update_gist",
+      
+      // === ユーザー・組織情報 ===
+      "mcp__github__get_me",
+      "mcp__github__get_teams",
+      "mcp__github__get_team_members",
+      
+      // === 基本ファイル操作 (他のユーザーが普通に許可している安全な操作) ===
+      "Bash(mkdir *)",
+      "Bash(touch *)",
+      "Bash(echo *)",
+      "Bash(cp *)",
+      "Bash(mv *)",
+      
+      // === Git基本操作 ===
+      "Bash(git checkout *)",
+      "Bash(git add *)",
+      
+      // === 開発ツール ===
+      "Bash(npm run *)",
+      "Bash(npm test *)",
+      "Bash(curl *)",
+      
+      // === Python開発 ===
+      "Bash(python *)",
+      "Bash(pytest *)",
+      
+      // === リンティング・品質管理 ===
+      "Bash(eslint *)",
+      "Bash(prettier *)",
+      
+      // === Web取得 ===
+      "WebFetch(domain:*)"
+    ],
+    "deny": [
+      // === システム破壊的操作 (本当に危険なもののみ) ===
+      "Bash(sudo *)",                  // 管理者権限
+      "Bash(chmod 777 *)",             // 危険な権限変更
+      "Bash(kill -9 *)",               // 強制プロセス終了
+      "Bash(chown root *)",            // 所有者変更
+      
+      // === 破壊的Git操作 ===
+      "Bash(git clean -fd)",           // 作業ディレクトリ完全削除
+      "Bash(git reset --hard origin/*)", // 強制同期
+      "Bash(git rebase -i *)",         // 対話的リベース
+      
+      // === パッケージ公開・削除 ===
+      "Bash(npm publish *)",           // パッケージ公開
+      "Bash(npm unpublish *)",         // パッケージ削除
+      "Bash(pip uninstall *)",         // Python パッケージ削除
+      
+      // === コンテナ削除操作 ===
+      "Bash(docker rmi *)",            // イメージ削除
+      "Bash(docker system prune *)",   // システム全体クリーンアップ
+      
+      // === クラウド削除操作 ===
+      "Bash(aws * delete-*)",          // AWSリソース削除
+      "Bash(aws * terminate-*)",       // AWS終了操作
+      "Bash(aws s3 rm *)",             // S3削除
+      "Bash(gcloud * delete *)",       // GCPリソース削除
+      "Bash(az * delete *)",           // Azureリソース削除
+      
+      // === GitHub破壊的操作 ===
+      "mcp__github__delete_file",      // ファイル削除
+      "mcp__github__create_or_update_file" // ファイル直接変更
+    ]
+  }
+}
