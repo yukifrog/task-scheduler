@@ -5,7 +5,6 @@
  * Checks if the current PR size is within recommended guidelines
  */
 
-// eslint-disable-next-line @typescript-eslint/no-require-imports
 const { execSync } = require('child_process');
 
 // Size thresholds based on pr-guidelines.md
@@ -63,13 +62,13 @@ function getPRStats() {
 
 function categorizeSize(total) {
   if (total <= THRESHOLDS.SMALL) {
-    return { category: 'Small', icon: '✅', color: 'green' };
+    return { category: 'Small', icon: '✅' };
   } else if (total <= THRESHOLDS.MEDIUM) {
-    return { category: 'Medium', icon: '⚠️', color: 'yellow' };
+    return { category: 'Medium', icon: '⚠️' };
   } else if (total <= THRESHOLDS.LARGE) {
-    return { category: 'Large', icon: '🔍', color: 'orange' };
+    return { category: 'Large', icon: '🔍' };
   } else {
-    return { category: 'Extra Large', icon: '❌', color: 'red' };
+    return { category: 'Extra Large', icon: '❌' };
   }
 }
 
